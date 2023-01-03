@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Draw</title>
+    <style type="text/css">
+        #canvasBox {
+            background-color:white;
+            border-radius:5px;
+            border:1px solid #000;
+        }
+    </style>
+    <script type="application/javascript">
+        let cc = null;
+        let offsetLeft = 0;
+        let offsetTop = 0;
+        let drawing = false;
+        let color = 'black';
+        let selectedTd = null;
+        const colorBoxDefaultStyle = '1px solid grey';
+        const colors = ["AliceBlue","AntiqueWhite","Aqua","Aquamarine","Azure","Beige","Bisque","Black","BlanchedAlmond","Blue","BlueViolet","Brown","BurlyWood","CadetBlue","Chartreuse","Chocolate","Coral","CornflowerBlue","Cornsilk","Crimson","Cyan","DarkBlue","DarkCyan","DarkGoldenRod","DarkGray","DarkGrey","DarkGreen","DarkKhaki","DarkMagenta","DarkOliveGreen","DarkOrange","DarkOrchid","DarkRed","DarkSalmon","DarkSeaGreen","DarkSlateBlue","DarkSlateGray","DarkSlateGrey","DarkTurquoise","DarkViolet","DeepPink","DeepSkyBlue","DimGray","DimGrey","DodgerBlue","FireBrick","FloralWhite","ForestGreen","Fuchsia","Gainsboro","GhostWhite","Gold","GoldenRod","Gray","Grey","Green","GreenYellow","HoneyDew","HotPink","IndianRed","Indigo","Ivory","Khaki","Lavender","LavenderBlush","LawnGreen","LemonChiffon","LightBlue","LightCoral","LightCyan","LightGoldenRodYellow","LightGray","LightGrey","LightGreen","LightPink","LightSalmon","LightSeaGreen","LightSkyBlue","LightSlateGray","LightSlateGrey","LightSteelBlue","LightYellow","Lime","LimeGreen","Linen","Magenta","Maroon","MediumAquaMarine","MediumBlue","MediumOrchid","MediumPurple","MediumSeaGreen","MediumSlateBlue","MediumSpringGreen","MediumTurquoise","MediumVioletRed","MidnightBlue","MintCream","MistyRose","Moccasin","NavajoWhite","Navy","OldLace","Olive","OliveDrab","Orange","OrangeRed","Orchid","PaleGoldenRod","PaleGreen","PaleTurquoise","PaleVioletRed","PapayaWhip","PeachPuff","Peru","Pink","Plum","PowderBlue","Purple","RebeccaPurple","Red","RosyBrown","RoyalBlue","SaddleBrown","Salmon","SandyBrown","SeaGreen","SeaShell","Sienna","Silver","SkyBlue","SlateBlue","SlateGray","SlateGrey","Snow","SpringGreen","SteelBlue","Tan","Teal","Thistle","Tomato","Turquoise","Violet","Wheat","White","WhiteSmoke","Yellow","YellowGreen"];
+        function initComponents() {
+            const c = document.getElementById('canvasBox');
+            offsetLeft = c.offsetLeft;
+            offsetTop = c.offsetTop;
+            cc = c.getContext('2d');
+            cc.lineWidth = 5;
+
+            const t = document.getElementById('colorsTable');
+            let tr;
+            for (let i = 0;i < colors.length;i++) {
+                if (i % 10 == 0) {
+                    tr = document.createElement('tr');
+                    t.appendChild(tr);
+                }
+                const td = document.createElement('td');
+                td.style.border = colorBoxDefaultStyle;
+                td.style.cursor = 'pointer';
+                td.style.backgroundColor = colors[i];
+                td.style.width = '20px';
+                td.style.height = '20px';
+                td.onclick = function() {
+                    if (selectedTd)
+                        selectedTd.style.border = colorBoxDefaultStyle;
+                    selectedTd = this;
+                    color = this.style.backgroundColor;
+                    this.style.border='1px solid black';
+                };
+                tr.appendChild(td);
+            }
+        }
+        function draw(e) {
+            if (drawing) {
+                cc.strokeStyle = color;
+                cc.lineJoin = 'round';
+                const x = e.pageX - offsetLeft;
+                const y = e.pageY - offsetTop;
+                cc.beginPath();
+                cc.moveTo(x, y);
+                cc.lineTo(x + 1, y + 1);
+                cc.closePath();
+                cc.stroke();
+            }
+        }
+    </script>
+</head>
+<body onload="initComponents();">
+<div style="float:left">
+<canvas id="canvasBox" width='600' height='500' onmousedown="drawing = true;" onmouseup="drawing = false;" onmouseleave="drawing = false;" onmousemove="draw(event);"></canvas>
+</div>
+<!--https://www.w3schools.com/colors/colors_names.asp-->
+<div style="float:left">
+    Color:
+    <table id="colorsTable">
+    </table>
+    lineWidth:
+    <select onchange="cc.lineWidth = this.value;">
+        <option value="1">1</option>
+        <option value="3">3</option>
+        <option value="5" selected>5</option>
+        <option value="7">7</option>
+        <option value="9">9</option>
+    </select>
+    <button id='clearCanvas'>Clear</button>
+</div>
+</body>
+</html>
