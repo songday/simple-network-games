@@ -11,20 +11,29 @@
         }
     </style>
     <script type="application/javascript">
+        const role = 'draw';
+        // const role = 'guess/draw';
         let cc = null;
         let offsetLeft = 0;
         let offsetTop = 0;
         let drawing = false;
-        let color = 'black';
         let selectedTd = null;
         const colorBoxDefaultStyle = '1px solid grey';
         const colors = ["AliceBlue","AntiqueWhite","Aqua","Aquamarine","Azure","Beige","Bisque","Black","BlanchedAlmond","Blue","BlueViolet","Brown","BurlyWood","CadetBlue","Chartreuse","Chocolate","Coral","CornflowerBlue","Cornsilk","Crimson","Cyan","DarkBlue","DarkCyan","DarkGoldenRod","DarkGray","DarkGrey","DarkGreen","DarkKhaki","DarkMagenta","DarkOliveGreen","DarkOrange","DarkOrchid","DarkRed","DarkSalmon","DarkSeaGreen","DarkSlateBlue","DarkSlateGray","DarkSlateGrey","DarkTurquoise","DarkViolet","DeepPink","DeepSkyBlue","DimGray","DimGrey","DodgerBlue","FireBrick","FloralWhite","ForestGreen","Fuchsia","Gainsboro","GhostWhite","Gold","GoldenRod","Gray","Grey","Green","GreenYellow","HoneyDew","HotPink","IndianRed","Indigo","Ivory","Khaki","Lavender","LavenderBlush","LawnGreen","LemonChiffon","LightBlue","LightCoral","LightCyan","LightGoldenRodYellow","LightGray","LightGrey","LightGreen","LightPink","LightSalmon","LightSeaGreen","LightSkyBlue","LightSlateGray","LightSlateGrey","LightSteelBlue","LightYellow","Lime","LimeGreen","Linen","Magenta","Maroon","MediumAquaMarine","MediumBlue","MediumOrchid","MediumPurple","MediumSeaGreen","MediumSlateBlue","MediumSpringGreen","MediumTurquoise","MediumVioletRed","MidnightBlue","MintCream","MistyRose","Moccasin","NavajoWhite","Navy","OldLace","Olive","OliveDrab","Orange","OrangeRed","Orchid","PaleGoldenRod","PaleGreen","PaleTurquoise","PaleVioletRed","PapayaWhip","PeachPuff","Peru","Pink","Plum","PowderBlue","Purple","RebeccaPurple","Red","RosyBrown","RoyalBlue","SaddleBrown","Salmon","SandyBrown","SeaGreen","SeaShell","Sienna","Silver","SkyBlue","SlateBlue","SlateGray","SlateGrey","Snow","SpringGreen","SteelBlue","Tan","Teal","Thistle","Tomato","Turquoise","Violet","Wheat","White","WhiteSmoke","Yellow","YellowGreen"];
         function initComponents() {
             const c = document.getElementById('canvasBox');
-            offsetLeft = c.offsetLeft;
-            offsetTop = c.offsetTop;
             cc = c.getContext('2d');
-            cc.lineWidth = 5;
+            if (role == 'draw') {
+                offsetLeft = c.offsetLeft;
+                offsetTop = c.offsetTop;
+                c.onmousedown = function(){drawing = true;};
+                c.onmouseup = function(){drawing = false;};
+                c.onmouseleave = function(){drawing = false;};
+                c.onmousemove = function(event){draw(event);};
+                cc.lineWidth = 5;
+                cc.strokeStyle = 'black';
+                cc.lineJoin = 'round';
+            }
 
             const t = document.getElementById('colorsTable');
             let tr;
@@ -43,7 +52,7 @@
                     if (selectedTd)
                         selectedTd.style.border = colorBoxDefaultStyle;
                     selectedTd = this;
-                    color = this.style.backgroundColor;
+                    cc.strokeStyle = this.style.backgroundColor;
                     this.style.border='1px solid black';
                 };
                 tr.appendChild(td);
@@ -51,8 +60,6 @@
         }
         function draw(e) {
             if (drawing) {
-                cc.strokeStyle = color;
-                cc.lineJoin = 'round';
                 const x = e.pageX - offsetLeft;
                 const y = e.pageY - offsetTop;
                 cc.beginPath();
@@ -62,18 +69,23 @@
                 cc.stroke();
             }
         }
+        function clearCanvas() {
+            cc.fillStyle = 'white';
+            cc.fillRect(0, 0, 600, 500);
+        }
     </script>
 </head>
 <body onload="initComponents();">
 <div style="float:left">
-<canvas id="canvasBox" width='600' height='500' onmousedown="drawing = true;" onmouseup="drawing = false;" onmouseleave="drawing = false;" onmousemove="draw(event);"></canvas>
+    绘画区：
+<canvas id="canvasBox" width='600' height='500' onmousemove="draw(event);"></canvas>
 </div>
 <!--https://www.w3schools.com/colors/colors_names.asp-->
 <div style="float:left">
-    Color:
+    笔的颜色:
     <table id="colorsTable">
     </table>
-    lineWidth:
+    笔的粗细:
     <select onchange="cc.lineWidth = this.value;">
         <option value="1">1</option>
         <option value="3">3</option>
@@ -81,7 +93,8 @@
         <option value="7">7</option>
         <option value="9">9</option>
     </select>
-    <button id='clearCanvas'>Clear</button>
+    <br/>
+    <button onclick='clearCanvas();'>清空画板</button>
 </div>
 </body>
 </html>
