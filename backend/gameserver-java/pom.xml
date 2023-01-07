@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.songday.game</groupId>
-	<artifactId>draw-room</artifactId>
+	<artifactId>simple-network-games</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
 	<name>Simple network games</name>
-	<description>Draw and guess</description>
+	<description>Many simple online games</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
