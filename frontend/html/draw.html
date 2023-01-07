@@ -9,12 +9,20 @@
             border-radius:5px;
             border:1px solid #000;
         }
-
+        #chatBox {
+            background-color:white;
+            border-radius:5px;
+            border:1px solid #000;
+            height: 450px;
+            width: 300px;
+            overflow: auto;
+        }
     </style>
     <script type="application/javascript">
         let drawer = false;
-        let roomId = null;
         let ws = null;
+        let chatBox = null;
+        let chatInput = null;
 
         let cc = null;
         let offsetLeft = 0;
@@ -23,6 +31,7 @@
         let drawing = false;
 
         function getParam(cname) {
+            console.log(document.location.search);
             let name = cname + "=";
             let ca = document.location.search.split('&');
             for (let i = 0; i < ca.length; i++) {
@@ -30,8 +39,9 @@
                 while (c.charAt(0) == ' ') {
                     c = c.substring(1);
                 }
-                if (c.indexOf(name) == 0) {
-                    return c.substring(name.length, c.length);
+                let p = c.indexOf(name);
+                if (c.indexOf(name) > -1) {
+                    return c.substring(p + name.length, c.length);
                 }
             }
             return "";
@@ -57,20 +67,24 @@
                 initComponents();
             };
 
+            ws.onclose = function() {
+                console.log('Connection was closed');
+            };
+
             ws.onmessage = function (event) {
                 const m = event.data;
                 console.log(m);
                 if (m == null || m == null || m.length == 0)
                     return;
                 const cmd = m.charAt(0);
-                // 1 初始化room
+                // N Inited room info
                 // 2 画布信息
                 // 3 画笔颜色
                 // 4 画布粗细
                 // 5 重置画布
                 // 6 聊天信息
                 // 7 结束
-                if (cmd == '1') {
+                if (cmd == 'N') {
                     console.log('房间创建成功');
                 } else if (cmd == '2') {
                     const p = m.substring(1);
@@ -80,26 +94,35 @@
                     cc.strokeStyle = m.substring(1);
                 } else if (cmd == '4') {
                     cc.lineWidth = m.substring(1);
+                } else if (cmd == '6') {
+                    const p = document.createElement('p');
+                    p.innerHTML = m.substring(1);
+                    chatBox.appendChild(p);
                 }
             };
         }
         function initComponents() {
+            chatBox = document.getElementById('chatBox');
+            chatInput = document.getElementById('chatInput');
             const c = document.getElementById('canvasBox');
             cc = c.getContext('2d');
+            cc.lineWidth = 5;
+            cc.strokeStyle = 'black';
+            cc.lineJoin = 'round';
             offsetLeft = c.offsetLeft;
             offsetTop = c.offsetTop;
-            if (!drawer)
+            if (!drawer) {
+                document.getElementById('col2').style.visibility = 'hidden';
                 return;
+            }
     
             c.onmousedown = function(){drawing = true;};
             c.onmouseup = function(){drawing = false;};
             c.onmouseleave = function(){drawing = false;};
             c.onmousemove = function(event){draw(event);};
-            cc.lineWidth = 5;
-            cc.strokeStyle = 'black';
-            cc.lineJoin = 'round';
 
             const colorBoxDefaultStyle = '1px solid grey';
+            // https://www.w3schools.com/colors/colors_names.asp
             const colors = [
                 "AliceBlue","AntiqueWhite","Aqua","Aquamarine","Azure","Beige","Bisque","Black","BlanchedAlmond","Blue","BlueViolet","Brown",
                 "BurlyWood","CadetBlue","Chartreuse","Chocolate","Coral","CornflowerBlue","Cornsilk","Crimson","Cyan","DarkBlue","DarkCyan",
@@ -159,15 +182,17 @@
             cc.fillStyle = 'white';
             cc.fillRect(0, 0, 600, 500);
         }
-
+        function chat() {
+            ws.send('B6' + chatInput.value);
+            chatInput.value = '';
+        }
     </script>
 </head>
 <body onload="initRoom();">
 <div style="float:left">
     <canvas id="canvasBox" width='600' height='500' onmousemove="draw(event);"></canvas>
 </div>
-<!--https://www.w3schools.com/colors/colors_names.asp-->
-<div style="float:left">
+<div id="col2" style="float:left;width: 270px;">
     笔的颜色:
     <table id="colorsTable">
     </table>
@@ -181,6 +206,10 @@
     </select>
     <br/>
     <button onclick='clearCanvas();'>清空画板</button>
+</div>
+<div style="float:left">
+    <div id="chatBox"></div>
+    <input id="chatInput" type="text"/> <button onclick='chat();'>发送</button>
 </div>
 </body>
 </html>
