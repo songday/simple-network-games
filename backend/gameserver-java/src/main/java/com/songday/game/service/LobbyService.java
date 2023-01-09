@@ -13,9 +13,10 @@ public class LobbyService {
     private final List<RoomData> rooms = new ArrayList<>(16);
     private final Object locker = new Object();
 
-    public RoomData newRoom(String creatorId, RoomType roomType) {
+    public RoomData newRoom(String creatorId, RoomType roomType, String roomName) {
         RoomData roomData = new RoomData();
         roomData.setRoomId(Scru128.generateString());
+        roomData.setRoomName(roomName);
         roomData.setRoomType(roomType);
         roomData.setCreatorId(creatorId);
         synchronized (locker) {
