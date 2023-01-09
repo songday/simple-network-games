@@ -75,6 +75,10 @@
             showDrawZoon();
             initGame();
         }
+        function gameover() {
+            alert('gameover');
+            ws.close();
+        }
         function initGame() {
             ws = new WebSocket('ws://localhost:3000/room/draw?roomName=' + encodeURIComponent(roomName) + '&roomId=' + roomId);
 
@@ -115,10 +119,19 @@
                     cc.strokeStyle = m.substring(1);
                 } else if (cmd == '4') {
                     cc.lineWidth = m.substring(1);
+                } else if (cmd == '5') {
+                    clearCanvas(false);
                 } else if (cmd == '6') {
+                    const s = m.substring(1);
                     const p = document.createElement('p');
-                    p.innerHTML = m.substring(1);
+                    p.innerHTML = s;
                     chatBox.appendChild(p);
+                    if (correctAnswer && s == correctAnswer) {
+                        ws.send('P7');
+                        gameover();
+                    }
+                } else if (cmd == '7') {
+                    gameover();
                 }
             };
         }
@@ -199,9 +212,11 @@
                 ws.send('P2' + e.pageX + ',' + e.pageY);
             }
         }
-        function clearCanvas() {
+        function clearCanvas(sync) {
             cc.fillStyle = 'white';
             cc.fillRect(0, 0, 600, 500);
+            if (sync)
+                ws.send('P5');
         }
         function chat() {
             ws.send('B6' + chatInput.value);
@@ -233,7 +248,7 @@
                 <option value="9">9</option>
             </select>
             <br/>
-            <button onclick='clearCanvas();'>清空画板</button>
+            <button onclick='clearCanvas(true);'>清空画板</button>
         </div>
         <div style="float:left">
             <div id="chatBox"></div>
