@@ -112,7 +112,6 @@ public class DrawRoomHandler implements WebSocketHandler {
                 if (roomData == null) {
                     throw new RuntimeException("Can not found game room by roomId " + joinRoomId);
                 } else {
-                    session.getAttributes().put(ATTR_ROOM_ID, roomData.getRoomId());
                     playerPairs.put(roomData.getCreatorId(), session.getId());
                 }
             }
