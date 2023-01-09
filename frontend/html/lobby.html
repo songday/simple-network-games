@@ -13,6 +13,9 @@
             overflow: auto;
             cursor: pointer;
         }
+        #newRoom {
+            display: none;
+        }
     </style>
     <script type="application/javascript">
         function loadRooms() {
@@ -36,23 +39,44 @@
         }
         function showRooms(rooms) {
             const t = document.getElementById('roomsBox');
+            t.innerHTML = '';
             let tr;
             for (let i = 0;i < rooms.length;i++) {
                 const div = document.createElement('div');
                 div.className = 'room';
                 const span = document.createElement('span');
-                span.innerHTML = rooms[i].roomType;
+                span.innerHTML = rooms[i].roomName + '<br/>' + rooms[i].roomType;
                 div.appendChild(span);
                 div.onclick = function() {
-                    location.href = 'draw.html?roomId=' + rooms[i].roomId;
+                    location.href = 'draw.html?roomName=' + encodeURIComponent(rooms[i].roomName) + '&roomId=' + rooms[i].roomId;
                 };
                 t.appendChild(div);
             }
         }
+        function showNewRoomOptions() {
+            document.getElementById('newRoom').style.display = 'block';
+        }
+        function createRoom() {
+            const roomName = document.getElementById('roomName').value;
+            const roomType = document.getElementById('roomType').value;
+            location.href = roomType + '?roomName=' + encodeURIComponent(roomName);
+        }
     </script>
 </head>
 <body onload="loadRooms();">
-<div id="roomsBox">
-</div>
+    <div>
+        <button type="button" onclick="showNewRoomOptions();">Create a new room</button>
+    </div>
+    <div id="newRoom">
+        <div>Name: <input type="text" id="roomName" /></div>
+        <div>
+            Type: 
+            <select id="roomType">
+                <option value="draw.html">Draw and guess</option>
+            </select>
+        </div>
+        <div><button type="button" onclick="createRoom();">Create</button></div>
+    </div>
+    <div id="roomsBox"></div>
 </body>
 </html>
