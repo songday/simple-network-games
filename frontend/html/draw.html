@@ -2,12 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Draw</title>
+    <title>Draw and guess</title>
     <style type="text/css">
         #canvasBox {
             background-color:white;
             border-radius:5px;
             border:1px solid #000;
+        }
+        #drawZoon {
+            display: none;
         }
         #chatBox {
             background-color:white;
@@ -19,6 +22,9 @@
         }
     </style>
     <script type="application/javascript">
+        let correctAnswer = null;
+        let roomName = null;
+        let roomId = null;
         let drawer = false;
         let ws = null;
         let chatBox = null;
@@ -46,21 +52,36 @@
             }
             return "";
         }
-
+        function showDrawZoon() {
+            document.getElementById('answerZoon').style.display = 'none';
+            document.getElementById('drawZoon').style.display = 'block';
+        }
         function initRoom() {
-            const roomId = getParam("roomId");
+            roomId = getParam("roomId");
             console.log(roomId);
-            let u = 'ws://localhost:3000/room/draw?roomId=';
-            if (roomId)
-                u += roomId;
-            else
+            roomName = getParam("roomName");
+            if (roomName) {
+                roomName = decodeURIComponent(roomName);
+                document.getElementById('roomName').innerHTML = roomName;
+            }
+            if (roomId) {
+                showDrawZoon();
+                initGame();
+            } else
                 drawer = true;
-            ws = new WebSocket(u);
+        }
+        function setCorrectAnswer() {
+            correctAnswer = document.getElementById('correctAnswer').value;
+            showDrawZoon();
+            initGame();
+        }
+        function initGame() {
+            ws = new WebSocket('ws://localhost:3000/room/draw?roomName=' + encodeURIComponent(roomName) + '&roomId=' + roomId);
 
             ws.onopen = function () {
                 console.log(`[CLIENT] open()`);
                 if (drawer) {
-                    ws.send('N');
+                    ws.send('N' + roomName);
                 } else {
                     ws.send('J' + roomId);
                 }
@@ -189,27 +210,35 @@
     </script>
 </head>
 <body onload="initRoom();">
-<div style="float:left">
-    <canvas id="canvasBox" width='600' height='500' onmousemove="draw(event);"></canvas>
-</div>
-<div id="col2" style="float:left;width: 270px;">
-    笔的颜色:
-    <table id="colorsTable">
-    </table>
-    笔的粗细:
-    <select onchange="cc.lineWidth = this.value;ws.send('P4'+this.value);">
-        <option value="1">1</option>
-        <option value="3">3</option>
-        <option value="5" selected>5</option>
-        <option value="7">7</option>
-        <option value="9">9</option>
-    </select>
-    <br/>
-    <button onclick='clearCanvas();'>清空画板</button>
-</div>
-<div style="float:left">
-    <div id="chatBox"></div>
-    <input id="chatInput" type="text"/> <button onclick='chat();'>发送</button>
-</div>
+    <div class="roomName" id="roomName"></div>
+    <div id="answerZoon">
+        Enter the correct answer:
+        <input type="text" id="correctAnswer" />
+        <button type="button" onclick="setCorrectAnswer();">Set</button>
+    </div>
+    <div id="drawZoon">
+        <div style="float:left">
+            <canvas id="canvasBox" width='600' height='500' onmousemove="draw(event);"></canvas>
+        </div>
+        <div id="col2" style="float:left;width: 270px;">
+            笔的颜色:
+            <table id="colorsTable">
+            </table>
+            笔的粗细:
+            <select onchange="cc.lineWidth = this.value;ws.send('P4'+this.value);">
+                <option value="1">1</option>
+                <option value="3">3</option>
+                <option value="5" selected>5</option>
+                <option value="7">7</option>
+                <option value="9">9</option>
+            </select>
+            <br/>
+            <button onclick='clearCanvas();'>清空画板</button>
+        </div>
+        <div style="float:left">
+            <div id="chatBox"></div>
+            <input id="chatInput" type="text"/> <button onclick='chat();'>发送</button>
+        </div>
+    </div>
 </body>
 </html>
