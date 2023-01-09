@@ -90,13 +90,13 @@ public class DrawRoomHandler implements WebSocketHandler {
             if (!WebSocketMessage.Type.TEXT.equals(payload.getType()))
                 return;
             final String m = payload.getPayloadAsText();
-//            log.info("m={}", m);
+            log.info("m={}", m);
             if (m.isEmpty())
                 return;
             // New room
             final char cmd = m.charAt(0);
             if (cmd == 'N') {
-                RoomData roomData = lobbyService.newRoom(session.getId(), RoomType.DRAW);
+                RoomData roomData = lobbyService.newRoom(session.getId(), RoomType.DRAW, m.substring(1));
                 if (roomData == null) {
                     throw new RuntimeException("Create game room failed");
                 } else {
