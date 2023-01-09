@@ -21,10 +21,11 @@
             overflow: auto;
         }
     </style>
+    <script src="common.js"></script>
     <script type="application/javascript">
-        let correctAnswer = null;
         let roomName = null;
         let roomId = null;
+        let correctAnswer = null;
         let drawer = false;
         let ws = null;
         let chatBox = null;
@@ -36,24 +37,8 @@
         let selectedTd = null;
         let drawing = false;
 
-        function getParam(cname) {
-            console.log(document.location.search);
-            let name = cname + "=";
-            let ca = document.location.search.split('&');
-            for (let i = 0; i < ca.length; i++) {
-                let c = ca[i];
-                while (c.charAt(0) == ' ') {
-                    c = c.substring(1);
-                }
-                let p = c.indexOf(name);
-                if (c.indexOf(name) > -1) {
-                    return c.substring(p + name.length, c.length);
-                }
-            }
-            return "";
-        }
         function showDrawZoon() {
-            document.getElementById('answerZoon').style.display = 'none';
+            document.getElementById('settingsZoon').style.display = 'none';
             document.getElementById('drawZoon').style.display = 'block';
         }
         function initRoom() {
@@ -70,7 +55,7 @@
             } else
                 drawer = true;
         }
-        function setCorrectAnswer() {
+        function saveSettings() {
             correctAnswer = document.getElementById('correctAnswer').value;
             showDrawZoon();
             initGame();
@@ -143,6 +128,7 @@
             cc.lineWidth = 5;
             cc.strokeStyle = 'black';
             cc.lineJoin = 'round';
+            cc.lineCap = "butt";
             offsetLeft = c.offsetLeft;
             offsetTop = c.offsetTop;
             if (!drawer) {
@@ -226,14 +212,14 @@
 </head>
 <body onload="initRoom();">
     <div class="roomName" id="roomName"></div>
-    <div id="answerZoon">
+    <div id="settingsZoon">
         Enter the correct answer:
         <input type="text" id="correctAnswer" />
-        <button type="button" onclick="setCorrectAnswer();">Set</button>
+        <button type="button" onclick="saveSettings();">Set</button>
     </div>
     <div id="drawZoon">
         <div style="float:left">
-            <canvas id="canvasBox" width='600' height='500' onmousemove="draw(event);"></canvas>
+            <canvas id="canvasBox" width='600' height='500'></canvas>
         </div>
         <div id="col2" style="float:left;width: 270px;">
             笔的颜色:
