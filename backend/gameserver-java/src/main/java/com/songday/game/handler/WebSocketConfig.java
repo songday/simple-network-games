@@ -26,6 +26,7 @@ public class WebSocketConfig {
         Map<String, WebSocketHandler> map = new HashMap<>(8, 1f);
         map.put("/lobby", new LobbyHandler(lobbyService));
         map.put("/room/draw", new DrawRoomHandler(lobbyService));
+        map.put("/room/snake", new SnakeRoomHandler(lobbyService));
         int order = -1;
 
         return new SimpleUrlHandlerMapping(map, order);
