@@ -31,8 +31,7 @@ public class LobbyHandler implements WebSocketHandler {
     @Override
     public Mono<Void> handle(WebSocketSession session) {
         onlinePlayerAmount.incrementAndGet();
-        final String message = getMessage();
-        return session.send(Flux.interval(Duration.ofMillis(0L), Duration.ofMillis(5000L)).map(l -> session.textMessage(message))).doOnTerminate(() -> {
+        return session.send(Flux.interval(Duration.ofMillis(0L), Duration.ofMillis(5000L)).map(l -> session.textMessage(getMessage()))).doOnTerminate(() -> {
             log.info("Finished");
             onlinePlayerAmount.decrementAndGet();
         });
