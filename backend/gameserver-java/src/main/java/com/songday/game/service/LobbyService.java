@@ -7,11 +7,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.StampedLock;
 
 @Service
 public class LobbyService {
     private final List<RoomData> rooms = new ArrayList<>(16);
-    private final Object locker = new Object();
+    private final StampedLock locker = new StampedLock();
 
     public RoomData newRoom(String creatorId, RoomType roomType, String roomName) {
         RoomData roomData = new RoomData();
@@ -19,8 +20,11 @@ public class LobbyService {
         roomData.setRoomName(roomName);
         roomData.setRoomType(roomType);
         roomData.setCreatorId(creatorId);
-        synchronized (locker) {
+        final long lock = locker.readLock();
+        try {
             rooms.add(roomData);
+        } finally {
+            locker.unlockRead(lock);
         }
         return roomData;
     }
@@ -30,24 +34,30 @@ public class LobbyService {
     }
 
     public RoomData getRoom(String roomId) {
-        synchronized (locker) {
+        final long lock = locker.writeLock();
+        try {
             for (RoomData room : rooms) {
                 if (room.getRoomId().equals(roomId)) {
                     return room;
                 }
             }
+        } finally {
+            locker.unlockWrite(lock);
         }
         return null;
     }
 
     public void removeRoom(String roomId) {
-        synchronized (locker) {
+        final long lock = locker.writeLock();
+        try {
             for (int i = 0; i < rooms.size(); i++) {
                 if (rooms.get(i).getRoomId().equals(roomId)) {
                     rooms.remove(i);
                     break;
                 }
             }
+        } finally {
+            locker.unlockWrite(lock);
         }
     }
 }
