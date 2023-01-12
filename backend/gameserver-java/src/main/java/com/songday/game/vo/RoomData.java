@@ -8,4 +8,6 @@ public class RoomData {
     private String roomName;
     private RoomType roomType;
     private String creatorId;
+    private String[] players;
+    private SnakeRoomData snakeRoomData;
 }
