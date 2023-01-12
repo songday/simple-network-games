@@ -4,6 +4,8 @@ import com.songday.game.vo.RoomData;
 import com.songday.game.vo.RoomType;
 import io.github.scru128.Scru128;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.socket.WebSocketSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.concurrent.locks.StampedLock;
 public class LobbyService {
     private final List<RoomData> rooms = new ArrayList<>(16);
     private final StampedLock locker = new StampedLock();
+    public static final String ATTR_ROOM_ID = "ROOM_ID";
 
     public RoomData newRoom(String creatorId, RoomType roomType, String roomName) {
         RoomData roomData = new RoomData();
@@ -60,4 +63,23 @@ public class LobbyService {
             locker.unlockWrite(lock);
         }
     }
+
+    public void removeRoom(WebSocketSession session) {
+        Object o = session.getAttributes().get(ATTR_ROOM_ID);
+        if (o instanceof String) {
+            removeRoom((String) o);
+        }
+    }
+
+    public String[] getPlayers(WebSocketSession session) {
+        Object o = session.getAttributes().get(LobbyService.ATTR_ROOM_ID);
+        if (o instanceof String) {
+            RoomData roomData = getRoom((String) o);
+            if (roomData != null) {
+                return roomData.getPlayers();
+            }
+        }
+        return null;
+    }
+
 }
