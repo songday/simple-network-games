@@ -17,14 +17,16 @@
     <script type="application/javascript">
         let roomName = null;
         let roomId = null;
-        let ticker = null;
+        let intervalMillis = 2000;
         let direction = null;
+        const squareSize = 10;
+        const snakePlace = new Array();
+        const foodPlace = [0, 0];
         let ws = null;
 
-        let c = null;
         let cc = null;
-        let offsetLeft = 0;
-        let offsetTop = 0;
+        let xLimit = 0;
+        let yLimit = 0;
 
         function showSnakeZoon() {
             document.getElementById('settingsZoon').style.display = 'none';
@@ -44,6 +46,7 @@
             }
         }
         function saveSettings() {
+            intervalMillis = document.getElementById('difficulty').value;
             showSnakeZoon();
             initGame();
         }
@@ -108,39 +111,163 @@
             };
         }
         function initComponents() {
-            c = document.getElementById('canvasBox');
+            const c = document.getElementById('canvasBox');
+            xLimit = c.width;
+            yLimit = c.height;
             cc = c.getContext('2d');
-            cc.lineWidth = 6;
+            cc.lineWidth = 1;
             cc.strokeStyle = 'black';
             cc.lineJoin = 'round';
             cc.lineCap = "butt";
-            offsetLeft = c.offsetLeft;
-            offsetTop = c.offsetTop;
-    
-            c.onkeyup = function(event) {
+
+            document.onkeydown = function(event) {
                 const k = event.keyCode;
-                if (k == 38) {}
+                console.log(k);
+                if (k == 38) {
+                    if (direction == 'down')
+                        return;
+                    direction = 'up';
+                }
+                else if (k == 40) {
+                    if (direction == 'up')
+                        return;
+                    direction = 'down';
+                }
+                else if (k == 37) {
+                    if (direction == 'right')
+                        return;
+                    direction = 'left';
+                }
+                else if (k == 39) {
+                    if (direction == 'left')
+                        return;
+                    direction = 'right';
+                }
             };
 
-            initRandomPlace();
+            // let i = 10;
+            // for (;i < c.width;i+=squareSize) {
+            //     cc.beginPath();
+            //     cc.moveTo(i, 0);
+            //     cc.lineTo(i, c.height);
+            //     cc.closePath();
+            //     cc.stroke();
+            // }
+            // for (i = 10;i < c.height;i+=squareSize) {
+            //     cc.beginPath();
+            //     cc.moveTo(0, i);
+            //     cc.lineTo(c.width, i);
+            //     cc.closePath();
+            //     cc.stroke();
+            // }
+
+            genFoodPlace();
+            initSnakePlaceAndDraw();
         }
-        function initRandomPlace() {
-            const squareSize = 10;
-            let _x = Math.floor(Math.random() * c.width);
-            if (c.width - _x < 100)
-                _x = c.width - 100;
-                let _y = Math.floor(Math.random() * c.height);
-            if (c.height - _y < 100)
-                _y = c.height - 100;
-            console.log("x="+_x+',y='+_y);
-            const x = _x - offsetLeft;
-            const y = _y - offsetTop;
-            // cc.beginPath();
-            cc.fillStyle = 'black';
-            cc.fillRect(x, y, squareSize, squareSize);
-            // cc.lineTo(x + 1, y + 1);
-            // cc.closePath();
-            // cc.stroke();
+        function randomX() {
+            return randomPlace(xLimit);
+        }
+        function randomY() {
+            return randomPlace(yLimit);
+        }
+        function randomPlace(limit) {
+            let z = Math.floor(Math.random() * (limit - squareSize));
+            // console.log(limit - squareSize);
+            // console.log(z);
+            // console.log(parseInt(z / squareSize) * squareSize);
+            return parseInt(z / squareSize) * squareSize;
+        }
+        function inSnakeBody(x, y) {
+            for (let i = 0; i < snakePlace.length; i++) {
+                // console.log(snakePlace[i][0] + "-" + x + '-' + snakePlace[i][1] +'-'+ y)
+                if (snakePlace[i][0] == x && snakePlace[i][1] == y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        function genFoodPlace() {
+            let x = 0;
+            let y = 0;
+            while (1) {
+                x = randomX();
+                y = randomY();
+                if (!inSnakeBody(x, y)) {
+                    foodPlace[0] = x;
+                    foodPlace[1] = y;
+                    // console.log('foodPlace[0]='+x+',foodPlace[1]='+y);
+                    break;
+                }
+            }
+        }
+        function initSnakePlaceAndDraw() {
+            let x = randomX();
+            let offsetX = 0;
+            if (xLimit - x < 100)
+                x = xLimit - 100;
+            if (x < (xLimit / 2)) {
+                direction = 'right';
+                offsetX = squareSize;
+            } else {
+                direction = 'left';
+                offsetX = -squareSize;
+            }
+            let y = randomY();
+            if (yLimit - y < 100)
+                y = yLimit - 100;
+            snakePlace.push([x, y]);
+            drawSnake(offsetX, 0);
+        }
+        function drawSnake(xOffset, yOffset) {
+            const lastPos = snakePlace.length - 1;
+            let lastSnakeBlock = [snakePlace[lastPos][0], snakePlace[lastPos][1]];
+            for (let i = lastPos;i > 0;i--) {
+                snakePlace[i][0] = snakePlace[i - 1][0];
+                snakePlace[i][1] = snakePlace[i - 1][1];
+            }
+            const head = snakePlace[0];
+            const newHeadX = head[0] + xOffset;
+            const newHeadY = head[1] + yOffset;
+            if (newHeadX < 0 || newHeadX >= xLimit || newHeadY < 0 || newHeadY >= yLimit || inSnakeBody(newHeadX, newHeadY)) {
+                alert('died');
+                return;
+            }
+            head[0] = newHeadX;
+            head[1] = newHeadY;
+            if (head[0] == foodPlace[0] && head[1] == foodPlace[1]) {
+                snakePlace.push(lastSnakeBlock);
+                lastSnakeBlock = null;
+                genFoodPlace();
+            }
+            snakePlace.forEach((item,index,arr)=> {
+                // console.log(item);  // a b c d e
+                // console.log('index='+index); // 0 1 2 3 4
+                // console.log(arr);  // ['a','b','c','d','e']
+                cc.fillStyle = 'black';
+                cc.fillRect(item[0], item[1], squareSize, squareSize);
+            });
+            cc.fillStyle = 'red';
+            cc.fillRect(foodPlace[0], foodPlace[1], squareSize, squareSize);
+            if (lastSnakeBlock) {
+                cc.fillStyle = 'white';
+                cc.fillRect(lastSnakeBlock[0], lastSnakeBlock[1], squareSize, squareSize);
+            }
+
+            window.setTimeout(moveSnake, intervalMillis);
+        }
+        function moveSnake() {
+            if (direction == 'left') {
+                drawSnake(-squareSize, 0);
+            }
+            else if (direction == 'right') {
+                drawSnake(squareSize, 0);
+            }
+            else if (direction == 'up') {
+                drawSnake(0, -squareSize);
+            }
+            else if (direction == 'down') {
+                drawSnake(0, squareSize);
+            }
         }
     </script>
 </head>
@@ -149,10 +276,10 @@
     <div id="settingsZoon">
         <div>
             Difficulty:
-            <select>
-                <option value="2000">Easy</option>
-                <option value="1000">Middle</option>
-                <option value="500">Hard</option>
+            <select id="difficulty">
+                <option value="1500">Easy</option>
+                <option value="800">Middle</option>
+                <option value="300">Hard</option>
             </select>
         </div>
         <div>
