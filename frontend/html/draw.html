@@ -46,7 +46,6 @@
             console.log(roomId);
             roomName = getParam("roomName");
             if (roomName) {
-                roomName = decodeURIComponent(roomName);
                 document.getElementById('roomName').innerHTML = roomName;
             }
             if (roomId) {
