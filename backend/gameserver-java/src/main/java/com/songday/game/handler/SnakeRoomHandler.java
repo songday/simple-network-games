@@ -3,79 +3,21 @@ package com.songday.game.handler;
 import com.songday.game.service.LobbyService;
 import com.songday.game.vo.RoomData;
 import com.songday.game.vo.RoomType;
-import lombok.AllArgsConstructor;
+import com.songday.game.vo.SnakeRoomData;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.reactive.socket.WebSocketHandler;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-@AllArgsConstructor
-public class SnakeRoomHandler implements WebSocketHandler {
-    private final LobbyService lobbyService;
-    private final Map<String, String> playerPairs = new ConcurrentHashMap<>(10, 1f);
-    private final Map<String, List<String>> allMessages = new ConcurrentHashMap<>(10, 1f);
-    private final String ATTR_ROOM_ID = "ROOM_ID";
+public class SnakeRoomHandler extends AbstractRoomHandler {
 
-    private void removeRoom(WebSocketSession session) {
-        Object o = session.getAttributes().get(ATTR_ROOM_ID);
-        if (o instanceof String) {
-            lobbyService.removeRoom((String) o);
-        }
-    }
-
-    private void addBroadcastMessages(WebSocketSession session, String message) {
-        addSelfMessage(session, message);
-        String roomCreator = playerPairs.get(session.getId());
-        if (roomCreator != null) {
-            addCompetitorMessage(session, message);
-        } else {
-            for (Map.Entry<String, String> entry : playerPairs.entrySet()) {
-                if (session.getId().equals(entry.getValue())) {
-                    addMessage(entry.getKey(), message);
-                    break;
-                }
-            }
-        }
-    }
-
-    private void addMessage(String sessionId, String message) {
-        allMessages.computeIfAbsent(sessionId, k -> new ArrayList<>(16)).add(message);
-    }
-
-    private void addSelfMessage(WebSocketSession session, String message) {
-        addMessage(session.getId(), message);
-    }
-
-    private List<String> getSelfMessages(WebSocketSession session) {
-        List<String> cachedMessages = allMessages.computeIfAbsent(session.getId(), k -> new ArrayList<>(16));
-        List<String> returnMessages = new ArrayList<>(cachedMessages);
-        cachedMessages.clear();
-        return returnMessages;
-    }
-
-    private List<String> getCompetitorMessages(WebSocketSession session) {
-        String competitorId = playerPairs.get(session.getId());
-        if (competitorId == null)
-            return null;
-        return allMessages.computeIfAbsent(competitorId, k -> new ArrayList<>(16));
-    }
-
-    private void addCompetitorMessage(WebSocketSession session, String message) {
-        String competitorId = playerPairs.get(session.getId());
-        if (competitorId != null) {
-            List<String> messages = getCompetitorMessages(session);
-            if (messages != null)
-                messages.add(message);
-        }
+    public SnakeRoomHandler(LobbyService lobbyService) {
+        super(lobbyService);
     }
 
     private Mono<Void> send(WebSocketSession session) {
@@ -96,13 +38,23 @@ public class SnakeRoomHandler implements WebSocketHandler {
             // New room
             final char cmd = m.charAt(0);
             if (cmd == 'N') {
-                RoomData roomData = lobbyService.newRoom(session.getId(), RoomType.DRAW, m.substring(1));
+                String data = m.substring(1);
+                String[] dataArray = StringUtils.tokenizeToStringArray(data, "|", true, true);
+                if (dataArray.length != 3)
+                    throw new RuntimeException("Wrong room data");
+                RoomData roomData = lobbyService.newRoom(session.getId(), RoomType.SNAKE, dataArray[0]);
                 if (roomData == null) {
                     throw new RuntimeException("Create game room failed");
                 } else {
-                    session.getAttributes().put(ATTR_ROOM_ID, roomData.getRoomId());
+                    String[] players = new String[]{session.getId(), ""};
+                    roomData.setPlayers(players);
+
+                    SnakeRoomData snakeRoomData = new SnakeRoomData();
+                    snakeRoomData.setRefreshIntervalMillis(Integer.parseInt(dataArray[1]));
+                    snakeRoomData.setGameMode(dataArray[2]);
+                    roomData.setSnakeRoomData(snakeRoomData);
+                    session.getAttributes().put(LobbyService.ATTR_ROOM_ID, roomData.getRoomId());
                     addSelfMessage(session, "N" + roomData.getRoomId());
-                    playerPairs.put(roomData.getRoomId(), session.getId());
                 }
             }
             // Join a room
@@ -112,7 +64,12 @@ public class SnakeRoomHandler implements WebSocketHandler {
                 if (roomData == null) {
                     throw new RuntimeException("Can not found game room by roomId " + joinRoomId);
                 } else {
-                    playerPairs.put(roomData.getCreatorId(), session.getId());
+                    String[] players = roomData.getPlayers();
+                    players[1] = session.getId();
+                    session.getAttributes().put(LobbyService.ATTR_ROOM_ID, roomData.getRoomId());
+
+                    SnakeRoomData snakeRoomData = roomData.getSnakeRoomData();
+                    addCompetitorMessage(session, "J" + snakeRoomData.getRefreshIntervalMillis() + "|" + snakeRoomData.getGameMode());
                 }
             }
             // Pass through
@@ -126,11 +83,11 @@ public class SnakeRoomHandler implements WebSocketHandler {
         }).doOnComplete(
             () -> {
                 log.info("Connection disconnected");
-                removeRoom(session);
+                cleanUp(session);
             }
         ).doOnError(e -> {
             log.error(e.getMessage(), e);
-            removeRoom(session);
+            cleanUp(session);
         }).then();
 
         Mono<Void> output = send(session);
