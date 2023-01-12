@@ -94,7 +94,8 @@
                 // 6 聊天信息
                 // 7 结束
                 if (cmd == 'N') {
-                    console.log('房间创建成功');
+                    roomId = m.substring(1);
+                    console.log('房间创建成功 id=' + roomId);
                 } else if (cmd == '2') {
                     const p = m.substring(1);
                     const xy = p.split(',');
