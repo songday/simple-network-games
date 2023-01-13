@@ -21,12 +21,15 @@
         let gameMode = null;
         let direction = null;
         const squareSize = 10;
+        let snakeColor = 'black';
         const snakePlace = new Array();
+        let remoteSnakeColor = 'black';
         let remoteSnakePlace = [0, 0];
+        const remoteSnakePlaceLastPos = [[0, 0]];
         const foodPlace = [0, 0];
         let ws = null;
 
-        let cc = null;
+        let ctx = null;
         let xLimit = 0;
         let yLimit = 0;
 
@@ -63,7 +66,9 @@
             ws.onopen = function () {
                 console.log(`[CLIENT] open()`);
                 if (!roomId) {
-                    ws.send('N' + roomName + '|' + intervalMillis + '|' + gameMode);
+                    snakeColor = getRandomColor();
+                    remoteSnakeColor = getRandomColor();
+                    ws.send('N' + roomName + '|' + intervalMillis + '|' + gameMode + '|' + snakeColor + '|' + remoteSnakeColor);
                 } else {
                     ws.send('J' + roomId);
                 }
@@ -98,26 +103,28 @@
                     } else {
                         const p = m.substring(1);
                         const d = p.split('|');
-                        intervalMillis = parseInt(d[0]);
-                        gameMode = d[1];
+                        intervalMillis = parseInt(d[1]);
+                        gameMode = d[2];
+                        remoteSnakeColor = d[3];
+                        snakeColor = d[4];
                     }
+                    // console.log('xxx snakeColor='+snakeColor);
                     initSnakePlaceAndDraw();
                 } else if (cmd == 'R') {
-                    const lastPos = remoteSnakePlace.length - 2;
-                    cc.fillStyle = 'white';
-                    cc.fillRect(remoteSnakePlace[lastPos], remoteSnakePlace[lastPos+1], squareSize, squareSize);
-
+                    // ctx.clearRect(remoteSnakePlace[remoteSnakePlace.length - 2], remoteSnakePlace[remoteSnakePlace.length - 1], squareSize, squareSize);
+                    remoteSnakePlaceLastPos.push([remoteSnakePlace[remoteSnakePlace.length - 2], remoteSnakePlace[remoteSnakePlace.length - 1]]);
                     remoteSnakePlace = m.substring(1).split(',');
-                    for (let i = 0;i < remoteSnakePlace.length;) {
-                        cc.fillStyle = 'black';
-                        cc.fillRect(remoteSnakePlace[i++], remoteSnakePlace[i++], squareSize, squareSize);
-                    };
+                    // for (let i = 0;i < remoteSnakePlace.length;) {
+                    //     console.log('remoteSnakeColor='+remoteSnakeColor);
+                    //     cc.fillStyle = remoteSnakeColor;
+                    //     cc.fillRect(remoteSnakePlace[i++], remoteSnakePlace[i++], squareSize, squareSize);
+                    // };
                 } else if (cmd == 'F') {
                     const array = m.substring(1).split(',');
                     foodPlace[0] = array[0];
                     foodPlace[1] = array[1];
-                    cc.fillStyle = 'red';
-                    cc.fillRect(foodPlace[0], foodPlace[1], squareSize, squareSize);
+                    ctx.fillStyle = 'red';
+                    ctx.fillRect(foodPlace[0], foodPlace[1], squareSize, squareSize);
                 } else if (cmd == '5') {
                     clearCanvas(false);
                 } else if (cmd == '6') {
@@ -138,11 +145,10 @@
             const c = document.getElementById('canvasBox');
             xLimit = c.width;
             yLimit = c.height;
-            cc = c.getContext('2d');
-            cc.lineWidth = 1;
-            cc.strokeStyle = 'black';
-            cc.lineJoin = 'round';
-            cc.lineCap = "butt";
+            ctx = c.getContext('2d');
+            ctx.lineWidth = 1;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = "butt";
 
             document.onkeydown = function(event) {
                 const k = event.keyCode;
@@ -209,8 +215,7 @@
         }
         function inRemoteSnakeBody(x, y) {
             for (let i = 0; i < remoteSnakePlace.length;) {
-                // console.log(snakePlace[i][0] + "-" + x + '-' + snakePlace[i][1] +'-'+ y)
-                if (snakePlace[i++] == x && snakePlace[i++] == y) {
+                if (remoteSnakePlace[i++] == x && remoteSnakePlace[i++] == y) {
                     return true;
                 }
             }
@@ -250,7 +255,8 @@
             drawSnake(offsetX, 0);
         }
         function drawSnake(xOffset, yOffset) {
-            const lastPos = snakePlace.length - 1;
+            console.log('drawSnake start');
+            let lastPos = snakePlace.length - 1;
             let lastSnakeBlock = [snakePlace[lastPos][0], snakePlace[lastPos][1]];
             for (let i = lastPos;i > 0;i--) {
                 snakePlace[i][0] = snakePlace[i - 1][0];
@@ -259,7 +265,7 @@
             const head = snakePlace[0];
             const newHeadX = head[0] + xOffset;
             const newHeadY = head[1] + yOffset;
-            if (newHeadX < 0 || newHeadX >= xLimit || newHeadY < 0 || newHeadY >= yLimit || inSnakeBody(newHeadX, newHeadY)) {
+            if (newHeadX < 0 || newHeadX >= xLimit || newHeadY < 0 || newHeadY >= yLimit || inSnakeBody(newHeadX, newHeadY) || inRemoteSnakeBody(newHeadX, newHeadY)) {
                 gameover();
                 return;
             }
@@ -277,24 +283,50 @@
                 // console.log(item);  // a b c d e
                 // console.log('index='+index); // 0 1 2 3 4
                 // console.log(arr);  // ['a','b','c','d','e']
-                cc.fillStyle = 'black';
-                cc.fillRect(item[0], item[1], squareSize, squareSize);
+                // console.log('snakeColor='+snakeColor);
+                ctx.rect(item[0], item[1], squareSize, squareSize);
                 sendData.push(item[0]);
                 sendData.push(item[1]);
             });
+            ctx.fillStyle = snakeColor;
+            ctx.fill();
+            ctx.beginPath();
+            for (let i = 0;i < remoteSnakePlace.length;) {
+                ctx.rect(remoteSnakePlace[i++], remoteSnakePlace[i++], squareSize, squareSize);
+            };
+            ctx.fillStyle = remoteSnakeColor;
+            ctx.fill();
+            ctx.beginPath();
             // cc.fillStyle = 'red';
             // cc.fillRect(foodPlace[0], foodPlace[1], squareSize, squareSize);
             if (lastSnakeBlock) {
-                cc.fillStyle = 'white';
-                cc.fillRect(lastSnakeBlock[0], lastSnakeBlock[1], squareSize, squareSize);
+                // ctx.fillStyle = 'white';
+                ctx.clearRect(lastSnakeBlock[0], lastSnakeBlock[1], squareSize, squareSize);
             }
+            let item;
+            console.log('remoteSnakePlaceLastPos.length=' + remoteSnakePlaceLastPos.length);
+            while (remoteSnakePlaceLastPos.length > 0) {
+                // console.log(item);  // a b c d e
+                // console.log('index='+index); // 0 1 2 3 4
+                // console.log(arr);  // ['a','b','c','d','e']
+                // console.log('snakeColor='+snakeColor);
+                item = remoteSnakePlaceLastPos.pop();
+                ctx.rect(item[0], item[1], squareSize, squareSize);
+            };
+            console.log('remoteSnakePlaceLastPos clear');
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            ctx.beginPath();
+            // ctx.clearRect(remoteSnakePlaceLastPos[0], remoteSnakePlaceLastPos[1], squareSize, squareSize);
 
             // console.log(sendData.join(','));
             ws.send('PR' + sendData.join(','));
 
             window.setTimeout(moveSnake, intervalMillis);
+            console.log('drawSnake end');
         }
         function moveSnake() {
+            console.log('moveSnake d=' + direction);
             if (direction == 'left') {
                 drawSnake(-squareSize, 0);
             }
@@ -312,6 +344,7 @@
 </head>
 <body onload="initRoom();">
     <div class="roomName" id="roomName"></div>
+    <div>Your snake color is: <div></div></div>
     <div id="settingsZoon">
         <div>
             Difficulty:
