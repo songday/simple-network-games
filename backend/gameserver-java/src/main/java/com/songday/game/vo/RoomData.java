@@ -9,5 +9,6 @@ public class RoomData {
     private RoomType roomType;
     private String creatorId;
     private String[] players;
-    private SnakeRoomData snakeRoomData;
+    private String extraData;
+//    private SnakeRoomData snakeRoomData;
 }
