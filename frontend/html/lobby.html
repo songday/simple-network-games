@@ -2,72 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Snake</title>
+    <title>Game lobby</title>
     <style type="text/css">
-        #canvasBox {
+        #roomsBox .room {
             background-color:white;
             border-radius:5px;
             border:1px solid #000;
+            height: 200px;
+            width: 200px;
+            overflow: auto;
+            cursor: pointer;
         }
-        #snakeZoon {
+        #newRoom {
             display: none;
         }
     </style>
-    <script src="common.js"></script>
     <script type="application/javascript">
-        let roomName = null;
-        let roomId = null;
-        let intervalMillis = 2000;
-        let gameMode = null;
-        let direction = null;
-        const squareSize = 10;
-        const snakePlace = new Array();
-        const foodPlace = [0, 0];
-        let ws = null;
-
-        let cc = null;
-        let xLimit = 0;
-        let yLimit = 0;
-
-        let roomOwner = false;
-
-        function showSnakeZoon() {
-            document.getElementById('settingsZoon').style.display = 'none';
-            document.getElementById('snakeZoon').style.display = 'block';
-        }
-        function initRoom() {
-            roomId = getParam("roomId");
-            console.log(roomId);
-            roomName = getParam("roomName");
-            if (roomName) {
-                document.getElementById('roomName').innerHTML = roomName;
-            }
-            if (roomId) {
-                showSnakeZoon();
-                initGame();
-            } else
-                roomOwner = true;
-        }
-        function saveSettings() {
-            intervalMillis = document.getElementById('difficulty').value;
-            gameMode = document.getElementById('gameMode').value;
-            showSnakeZoon();
-            initGame();
-        }
-        function gameover() {
-            alert('gameover');
-            ws.close();
-        }
-        function initGame() {
-            ws = new WebSocket('ws://localhost:3000/room/snake?roomName=' + encodeURIComponent(roomName) + '&roomId=' + roomId);
+        function loadRooms() {
+            const ws = new WebSocket('ws://localhost:3000/lobby');
 
             ws.onopen = function () {
                 console.log(`[CLIENT] open()`);
-                if (!roomId) {
-                    ws.send('N' + roomName + '|' + intervalMillis + '|' + gameMode);
-                } else {
-                    ws.send('J' + roomId);
-                }
             };
 
             ws.onclose = function() {
@@ -79,252 +34,56 @@
                 console.log(m);
                 if (m == null || m == null || m.length == 0)
                     return;
-                const cmd = m.charAt(0);
-                // N Inited room info
-                // J Joined room data
-                // 3 画笔颜色
-                // 4 画布粗细
-                // 5 重置画布
-                // 6 聊天信息
-                // 7 结束
-                if (cmd == 'N') {
-                    roomId = m = m.substring(1);
-                    console.log('房间创建成功 id=' + roomId);
-                } else if (cmd == 'J') {
-                    const p = m.substring(1);
-                    const d = p.split('|');
-                    intervalMillis = parseInt(d[0]);
-                    gameMode = d[1];
-                } else if (cmd == 'R') {
-                    const remoteSnakePlaceData = m.substring(1).split(',');
-                    let i;
-                    if (roomOwner) {
-                        i = 0;
-                    } else {
-                        i = 2;
-                        foodPlace[0] = remoteSnakePlaceData[0];
-                        foodPlace[1] = remoteSnakePlaceData[1];
-                    }
-                    for (;i < remoteSnakePlaceData.length;i++) {
-                        cc.fillStyle = 'black';
-                        cc.fillRect(remoteSnakePlaceData[i][0], remoteSnakePlaceData[i][1], squareSize, squareSize);
-                    };
-                    cc.fillStyle = 'red';
-                    cc.fillRect(foodPlace[0], foodPlace[1], squareSize, squareSize);
-                } else if (cmd == 'S') {
-                    initComponents();
-                } else if (cmd == '5') {
-                    clearCanvas(false);
-                } else if (cmd == '6') {
-                    const s = m.substring(1);
-                    const p = document.createElement('p');
-                    p.innerHTML = s;
-                    chatBox.appendChild(p);
-                    if (correctAnswer && s == correctAnswer) {
-                        ws.send('P7');
-                        gameover();
-                    }
-                } else if (cmd == '7') {
-                    gameover();
-                }
+                showRooms(JSON.parse(m));
             };
         }
-        function initComponents() {
-            const c = document.getElementById('canvasBox');
-            xLimit = c.width;
-            yLimit = c.height;
-            cc = c.getContext('2d');
-            cc.lineWidth = 1;
-            cc.strokeStyle = 'black';
-            cc.lineJoin = 'round';
-            cc.lineCap = "butt";
-
-            document.onkeydown = function(event) {
-                const k = event.keyCode;
-                // console.log(k);
-                if (k == 38) {
-                    if (direction == 'down')
-                        return;
-                    direction = 'up';
-                }
-                else if (k == 40) {
-                    if (direction == 'up')
-                        return;
-                    direction = 'down';
-                }
-                else if (k == 37) {
-                    if (direction == 'right')
-                        return;
-                    direction = 'left';
-                }
-                else if (k == 39) {
-                    if (direction == 'left')
-                        return;
-                    direction = 'right';
-                }
-            };
-
-            // let i = 10;
-            // for (;i < c.width;i+=squareSize) {
-            //     cc.beginPath();
-            //     cc.moveTo(i, 0);
-            //     cc.lineTo(i, c.height);
-            //     cc.closePath();
-            //     cc.stroke();
-            // }
-            // for (i = 10;i < c.height;i+=squareSize) {
-            //     cc.beginPath();
-            //     cc.moveTo(0, i);
-            //     cc.lineTo(c.width, i);
-            //     cc.closePath();
-            //     cc.stroke();
-            // }
-
-            if (roomOwner)
-                genFoodPlace();
-            initSnakePlaceAndDraw();
-        }
-        function randomX() {
-            return randomPlace(xLimit);
-        }
-        function randomY() {
-            return randomPlace(yLimit);
-        }
-        function randomPlace(limit) {
-            let z = Math.floor(Math.random() * (limit - squareSize));
-            // console.log(limit - squareSize);
-            // console.log(z);
-            // console.log(parseInt(z / squareSize) * squareSize);
-            return parseInt(z / squareSize) * squareSize;
-        }
-        function inSnakeBody(x, y) {
-            for (let i = 0; i < snakePlace.length; i++) {
-                // console.log(snakePlace[i][0] + "-" + x + '-' + snakePlace[i][1] +'-'+ y)
-                if (snakePlace[i][0] == x && snakePlace[i][1] == y) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        function genFoodPlace() {
-            let x = 0;
-            let y = 0;
-            while (1) {
-                x = randomX();
-                y = randomY();
-                if (!inSnakeBody(x, y)) {
-                    foodPlace[0] = x;
-                    foodPlace[1] = y;
-                    // console.log('foodPlace[0]='+x+',foodPlace[1]='+y);
-                    break;
-                }
+        function showRooms(rooms) {
+            const t = document.getElementById('roomsBox');
+            t.innerHTML = '';
+            let tr;
+            for (let i = 0;i < rooms.length;i++) {
+                const div = document.createElement('div');
+                div.className = 'room';
+                const span = document.createElement('span');
+                span.innerHTML = rooms[i].roomName + '<br/>' + rooms[i].roomType;
+                div.appendChild(span);
+                let page;
+                if (rooms[i].roomType == 'SNAKE')
+                    page = 'snake.html';
+                else if (rooms[i].roomType == 'DRAW')
+                    page = 'draw.html';
+                div.onclick = function() {
+                    location.href = page + '?roomName=' + encodeURIComponent(rooms[i].roomName) + '&roomId=' + rooms[i].roomId;
+                };
+                t.appendChild(div);
             }
         }
-        function initSnakePlaceAndDraw() {
-            let x = randomX();
-            let offsetX = 0;
-            if (xLimit - x < 100)
-                x = xLimit - 100;
-            if (x < (xLimit / 2)) {
-                direction = 'right';
-                offsetX = squareSize;
-            } else {
-                direction = 'left';
-                offsetX = -squareSize;
-            }
-            let y = randomY();
-            if (yLimit - y < 100)
-                y = yLimit - 100;
-            snakePlace.push([x, y]);
-            drawSnake(offsetX, 0);
+        function showNewRoomOptions() {
+            // showWelcome();
+            document.getElementById('newRoom').style.display = 'block';
         }
-        function drawSnake(xOffset, yOffset) {
-            const lastPos = snakePlace.length - 1;
-            let lastSnakeBlock = [snakePlace[lastPos][0], snakePlace[lastPos][1]];
-            for (let i = lastPos;i > 0;i--) {
-                snakePlace[i][0] = snakePlace[i - 1][0];
-                snakePlace[i][1] = snakePlace[i - 1][1];
-            }
-            const head = snakePlace[0];
-            const newHeadX = head[0] + xOffset;
-            const newHeadY = head[1] + yOffset;
-            if (newHeadX < 0 || newHeadX >= xLimit || newHeadY < 0 || newHeadY >= yLimit || inSnakeBody(newHeadX, newHeadY)) {
-                alert('died');
-                return;
-            }
-            head[0] = newHeadX;
-            head[1] = newHeadY;
-            if (head[0] == foodPlace[0] && head[1] == foodPlace[1]) {
-                snakePlace.push(lastSnakeBlock);
-                lastSnakeBlock = null;
-                if (roomOwner)
-                    genFoodPlace();
-            }
-            const sendData = new Array(roomOwner?snakePlace.length+2:snakePlace.length);
-            if (roomOwner) {
-                sendData.push(foodPlace[0]);
-                sendData.push(foodPlace[1]);
-            }
-            snakePlace.forEach((item,index,arr)=> {
-                // console.log(item);  // a b c d e
-                // console.log('index='+index); // 0 1 2 3 4
-                // console.log(arr);  // ['a','b','c','d','e']
-                cc.fillStyle = 'black';
-                cc.fillRect(item[0], item[1], squareSize, squareSize);
-                sendData.push(item[0]);
-                sendData.push(item[1]);
-            });
-            cc.fillStyle = 'red';
-            cc.fillRect(foodPlace[0], foodPlace[1], squareSize, squareSize);
-            if (lastSnakeBlock) {
-                cc.fillStyle = 'white';
-                cc.fillRect(lastSnakeBlock[0], lastSnakeBlock[1], squareSize, squareSize);
-            }
-
-            ws.send('PS' + sendData.join(','));
-
-            window.setTimeout(moveSnake, intervalMillis);
-        }
-        function moveSnake() {
-            if (direction == 'left') {
-                drawSnake(-squareSize, 0);
-            }
-            else if (direction == 'right') {
-                drawSnake(squareSize, 0);
-            }
-            else if (direction == 'up') {
-                drawSnake(0, -squareSize);
-            }
-            else if (direction == 'down') {
-                drawSnake(0, squareSize);
-            }
+        function createRoom() {
+            const roomName = document.getElementById('roomName').value;
+            const roomType = document.getElementById('roomType').value;
+            location.href = roomType + '?roomName=' + encodeURIComponent(roomName);
         }
     </script>
 </head>
-<body onload="initRoom();">
-    <div class="roomName" id="roomName"></div>
-    <div id="settingsZoon">
+<body onload="loadRooms();">
+    <div>
+        <button type="button" onclick="showNewRoomOptions();">Create a new room</button>
+    </div>
+    <div id="newRoom">
+        <div>Name: <input type="text" id="roomName" /></div>
         <div>
-            Difficulty:
-            <select id="difficulty">
-                <option value="1500">Easy</option>
-                <option value="800">Middle</option>
-                <option value="300">Hard</option>
+            Type: 
+            <select id="roomType">
+                <option value="draw.html">Draw and guess</option>
+                <option value="snake.html">Snake</option>
             </select>
         </div>
-        <div>
-            Mode:
-            <select id="gameMode">
-                <option value="amount">Amount</option>
-                <option value="vs">Vs.</option>
-            </select>
-        </div>
-        <div><button type="button" onclick="saveSettings();">Set</button></div>
+        <div><button type="button" onclick="createRoom();">Create</button></div>
     </div>
-    <div id="snakeZoon">
-        <div>
-            <canvas id="canvasBox" width="1200" height="550"></canvas>
-        </div>
-    </div>
+    <div id="roomsBox"></div>
 </body>
 </html>
