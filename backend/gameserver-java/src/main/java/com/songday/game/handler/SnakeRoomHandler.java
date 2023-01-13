@@ -69,7 +69,7 @@ public class SnakeRoomHandler extends AbstractRoomHandler {
                     session.getAttributes().put(LobbyService.ATTR_ROOM_ID, roomData.getRoomId());
 
                     SnakeRoomData snakeRoomData = roomData.getSnakeRoomData();
-                    addCompetitorMessage(session, "J" + snakeRoomData.getRefreshIntervalMillis() + "|" + snakeRoomData.getGameMode());
+                    addBroadcastMessages(session, "J" + snakeRoomData.getRefreshIntervalMillis() + "|" + snakeRoomData.getGameMode());
                 }
             }
             // Pass through
