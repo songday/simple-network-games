@@ -3,9 +3,7 @@ package com.songday.game.handler;
 import com.songday.game.service.LobbyService;
 import com.songday.game.vo.RoomData;
 import com.songday.game.vo.RoomType;
-import com.songday.game.vo.SnakeRoomData;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Flux;
@@ -32,7 +30,7 @@ public class SnakeRoomHandler extends AbstractRoomHandler {
             if (!WebSocketMessage.Type.TEXT.equals(payload.getType()))
                 return;
             final String m = payload.getPayloadAsText();
-            log.info("m={}", m);
+//            log.info("m={}", m);
             if (m.isEmpty())
                 return;
             // New room
