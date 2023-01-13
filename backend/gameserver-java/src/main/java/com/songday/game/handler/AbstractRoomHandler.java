@@ -42,7 +42,9 @@ public abstract class AbstractRoomHandler implements WebSocketHandler {
 
     protected void addCompetitorMessage(WebSocketSession session, String message) {
         String[] players = lobbyService.getPlayers(session);
-        String competitorId = players[1];
+        if (players == null || players.length < 2)
+            return;
+        String competitorId = session.getId().equals(players[0]) ? players[1] : players[0];
         if (StringUtils.hasText(competitorId)) {
             addMessage(competitorId, message);
         }
