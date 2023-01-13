@@ -38,21 +38,16 @@ public class SnakeRoomHandler extends AbstractRoomHandler {
             // New room
             final char cmd = m.charAt(0);
             if (cmd == 'N') {
-                String data = m.substring(1);
-                String[] dataArray = StringUtils.tokenizeToStringArray(data, "|", true, true);
-                if (dataArray.length != 3)
-                    throw new RuntimeException("Wrong room data");
-                RoomData roomData = lobbyService.newRoom(session.getId(), RoomType.SNAKE, dataArray[0]);
+                final String extraData = m.substring(1);
+                final String roomName = extraData.substring(0, extraData.indexOf('|'));
+                RoomData roomData = lobbyService.newRoom(session.getId(), RoomType.SNAKE, roomName);
                 if (roomData == null) {
                     throw new RuntimeException("Create game room failed");
                 } else {
                     String[] players = new String[]{session.getId(), ""};
                     roomData.setPlayers(players);
 
-                    SnakeRoomData snakeRoomData = new SnakeRoomData();
-                    snakeRoomData.setRefreshIntervalMillis(Integer.parseInt(dataArray[1]));
-                    snakeRoomData.setGameMode(dataArray[2]);
-                    roomData.setSnakeRoomData(snakeRoomData);
+                    roomData.setExtraData(extraData);
                     session.getAttributes().put(LobbyService.ATTR_ROOM_ID, roomData.getRoomId());
                     addSelfMessage(session, "N" + roomData.getRoomId());
                 }
@@ -68,8 +63,7 @@ public class SnakeRoomHandler extends AbstractRoomHandler {
                     players[1] = session.getId();
                     session.getAttributes().put(LobbyService.ATTR_ROOM_ID, roomData.getRoomId());
 
-                    SnakeRoomData snakeRoomData = roomData.getSnakeRoomData();
-                    addBroadcastMessages(session, "J" + snakeRoomData.getRefreshIntervalMillis() + "|" + snakeRoomData.getGameMode());
+                    addBroadcastMessages(session, "J" + roomData.getExtraData());
                 }
             }
             // Pass through
