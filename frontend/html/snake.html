@@ -32,6 +32,7 @@
         let ctx = null;
         let xLimit = 0;
         let yLimit = 0;
+        let previousTimeStamp = 0;
 
         let roomOwner = false;
 
@@ -151,24 +152,24 @@
             ctx.lineCap = "butt";
 
             document.onkeydown = function(event) {
-                const k = event.keyCode;
+                const k = event.code;
                 // console.log(k);
-                if (k == 38) {
+                if (k == 'ArrowUp') {
                     if (direction == 'down')
                         return;
                     direction = 'up';
                 }
-                else if (k == 40) {
+                else if (k == 'ArrowDown') {
                     if (direction == 'up')
                         return;
                     direction = 'down';
                 }
-                else if (k == 37) {
+                else if (k == 'ArrowLeft') {
                     if (direction == 'right')
                         return;
                     direction = 'left';
                 }
-                else if (k == 39) {
+                else if (k == 'ArrowRight') {
                     if (direction == 'left')
                         return;
                     direction = 'right';
@@ -238,24 +239,21 @@
         }
         function initSnakePlaceAndDraw() {
             let x = randomX();
-            let offsetX = 0;
             if (xLimit - x < 100)
                 x = xLimit - 100;
             if (x < (xLimit / 2)) {
                 direction = 'right';
-                offsetX = squareSize;
             } else {
                 direction = 'left';
-                offsetX = -squareSize;
             }
             let y = randomY();
             if (yLimit - y < 100)
                 y = yLimit - 100;
             snakePlace.push([x, y]);
-            drawSnake(offsetX, 0);
+            // drawSnake(offsetX, 0);
+            moveSnake(intervalMillis);
         }
         function drawSnake(xOffset, yOffset) {
-            console.log('drawSnake start');
             let lastPos = snakePlace.length - 1;
             let lastSnakeBlock = [snakePlace[lastPos][0], snakePlace[lastPos][1]];
             for (let i = lastPos;i > 0;i--) {
@@ -276,7 +274,7 @@
                 lastSnakeBlock = null;
                 genFoodPlace();
             }
-            const sendData = new Array();
+            const sendData = [];
             // sendData.push(foodPlace[0]);
             // sendData.push(foodPlace[1]);
             snakePlace.forEach((item,index,arr)=> {
@@ -304,7 +302,6 @@
                 ctx.clearRect(lastSnakeBlock[0], lastSnakeBlock[1], squareSize, squareSize);
             }
             let item;
-            console.log('remoteSnakePlaceLastPos.length=' + remoteSnakePlaceLastPos.length);
             while (remoteSnakePlaceLastPos.length > 0) {
                 // console.log(item);  // a b c d e
                 // console.log('index='+index); // 0 1 2 3 4
@@ -313,7 +310,6 @@
                 item = remoteSnakePlaceLastPos.pop();
                 ctx.rect(item[0], item[1], squareSize, squareSize);
             };
-            console.log('remoteSnakePlaceLastPos clear');
             ctx.fillStyle = 'white';
             ctx.fill();
             ctx.beginPath();
@@ -322,23 +318,27 @@
             // console.log(sendData.join(','));
             ws.send('PR' + sendData.join(','));
 
-            window.setTimeout(moveSnake, intervalMillis);
-            console.log('drawSnake end');
+            // window.setTimeout(moveSnake, intervalMillis);
+            // window.requestAnimationFrame(moveSnake);
         }
-        function moveSnake() {
-            console.log('moveSnake d=' + direction);
-            if (direction == 'left') {
-                drawSnake(-squareSize, 0);
+        function moveSnake(timestamp) {
+            const elapsed = timestamp - previousTimeStamp;
+            if (elapsed >= intervalMillis) {
+                if (direction == 'left') {
+                    drawSnake(-squareSize, 0);
+                }
+                else if (direction == 'right') {
+                    drawSnake(squareSize, 0);
+                }
+                else if (direction == 'up') {
+                    drawSnake(0, -squareSize);
+                }
+                else if (direction == 'down') {
+                    drawSnake(0, squareSize);
+                }
+                previousTimeStamp = timestamp;
             }
-            else if (direction == 'right') {
-                drawSnake(squareSize, 0);
-            }
-            else if (direction == 'up') {
-                drawSnake(0, -squareSize);
-            }
-            else if (direction == 'down') {
-                drawSnake(0, squareSize);
-            }
+            window.requestAnimationFrame(moveSnake);
         }
     </script>
 </head>
