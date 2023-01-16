@@ -3,25 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <title>Draw and guess</title>
-    <style type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="../assets/grids-responsive-min.css" rel="stylesheet"/>
+    <link href="../assets/common.css" rel="stylesheet"/>
+    <link href="../assets/nes.min.css" rel="stylesheet"/>
+    <style>
         #canvasBox {
-            background-color:white;
-            border-radius:5px;
-            border:1px solid #000;
+            background-color: white;
+            border-radius: 5px;
+            border: 1px solid #000;
         }
-        #drawZoon {
+
+        #drawArea {
             display: none;
         }
+
         #chatBox {
-            background-color:white;
-            border-radius:5px;
-            border:1px solid #000;
+            background-color: white;
+            border-radius: 5px;
+            border: 1px solid #000;
             height: 450px;
             width: 300px;
             overflow: auto;
         }
     </style>
-    <script src="common.js"></script>
+    <script src="../assets/common.js"></script>
     <script type="application/javascript">
         let roomName = null;
         let roomId = null;
@@ -37,10 +43,11 @@
         let selectedTd = null;
         let drawing = false;
 
-        function showDrawZoon() {
-            document.getElementById('settingsZoon').style.display = 'none';
-            document.getElementById('drawZoon').style.display = 'block';
+        function showDrawArea() {
+            document.getElementById('settingsArea').style.display = 'none';
+            document.getElementById('drawArea').style.display = 'block';
         }
+
         function initRoom() {
             roomId = getParam("roomId");
             console.log(roomId);
@@ -49,20 +56,23 @@
                 document.getElementById('roomName').innerHTML = roomName;
             }
             if (roomId) {
-                showDrawZoon();
+                showDrawArea();
                 initGame();
             } else
                 drawer = true;
         }
+
         function saveSettings() {
             correctAnswer = document.getElementById('correctAnswer').value;
-            showDrawZoon();
+            showDrawArea();
             initGame();
         }
+
         function gameover() {
             alert('gameover');
             ws.close();
         }
+
         function initGame() {
             ws = new WebSocket('ws://localhost:3000/room/draw?roomName=' + encodeURIComponent(roomName) + '&roomId=' + roomId);
 
@@ -76,14 +86,14 @@
                 initComponents();
             };
 
-            ws.onclose = function() {
+            ws.onclose = function () {
                 console.log('Connection was closed');
             };
 
             ws.onmessage = function (event) {
                 const m = event.data;
                 console.log(m);
-                if (m == null || m == null || m.length == 0)
+                if (m == null || m.length == 0)
                     return;
                 const cmd = m.charAt(0);
                 // N Inited room info
@@ -120,6 +130,7 @@
                 }
             };
         }
+
         function initComponents() {
             chatBox = document.getElementById('chatBox');
             chatInput = document.getElementById('chatInput');
@@ -135,18 +146,26 @@
                 document.getElementById('col2').style.visibility = 'hidden';
                 return;
             }
-    
-            c.onmousedown = function(){drawing = true;};
-            c.onmouseup = function(){drawing = false;};
-            c.onmouseleave = function(){drawing = false;};
-            c.onmousemove = function(event){draw(event);};
+
+            c.onmousedown = function () {
+                drawing = true;
+            };
+            c.onmouseup = function () {
+                drawing = false;
+            };
+            c.onmouseleave = function () {
+                drawing = false;
+            };
+            c.onmousemove = function (event) {
+                draw(event);
+            };
 
             const colorBoxDefaultStyle = '1px solid grey';
             // https://www.w3schools.com/colors/colors_names.asp
             const t = document.getElementById('colorsTable');
             let tr;
-            for (let i = 0;i < COLORS.length;i++) {
-                if (i % 10 == 0) {
+            for (let i = 0; i < COLORS.length; i++) {
+                if (i % 40 == 0) {
                     tr = document.createElement('tr');
                     t.appendChild(tr);
                 }
@@ -154,19 +173,20 @@
                 td.style.border = colorBoxDefaultStyle;
                 td.style.cursor = 'pointer';
                 td.style.backgroundColor = COLORS[i];
-                td.style.width = '20px';
-                td.style.height = '20px';
-                td.onclick = function() {
+                td.style.width = '15px';
+                td.style.height = '15px';
+                td.onclick = function () {
                     if (selectedTd)
                         selectedTd.style.border = colorBoxDefaultStyle;
                     selectedTd = this;
                     cc.strokeStyle = this.style.backgroundColor;
-                    this.style.border='1px solid black';
-                    ws.send('P3'+this.style.backgroundColor);
+                    this.style.border = '1px solid black';
+                    ws.send('P3' + this.style.backgroundColor);
                 };
                 tr.appendChild(td);
             }
         }
+
         function drawPixel(_x, _y) {
             const x = _x - offsetLeft;
             const y = _y - offsetTop;
@@ -176,18 +196,21 @@
             cc.closePath();
             cc.stroke();
         }
+
         function draw(e) {
             if (drawing) {
                 drawPixel(e.pageX, e.pageY);
                 ws.send('P2' + e.pageX + ',' + e.pageY);
             }
         }
+
         function clearCanvas(sync) {
             cc.fillStyle = 'white';
             cc.fillRect(0, 0, 600, 500);
             if (sync)
                 ws.send('P5');
         }
+
         function chat() {
             ws.send('B6' + chatInput.value);
             chatInput.value = '';
@@ -195,20 +218,20 @@
     </script>
 </head>
 <body onload="initRoom();">
-    <div class="roomName" id="roomName"></div>
-    <div id="settingsZoon">
-        Enter the correct answer:
-        <input type="text" id="correctAnswer" />
-        <button type="button" onclick="saveSettings();">Set</button>
-    </div>
-    <div id="drawZoon">
-        <div style="float:left">
+<div id="roomName"></div>
+<div id="settingsArea">
+    Enter the correct answer:<br/>
+    <input class="nes-input" type="text" id="correctAnswer"/>
+    <button type="button" onclick="saveSettings();">Start</button>
+</div>
+<div id="drawArea" class="pure-g">
+    <div class="pure-u-lg-3-5">
+        <div>
             <canvas id="canvasBox" width='600' height='500'></canvas>
         </div>
-        <div id="col2" style="float:left;width: 270px;">
-            笔的颜色:
-            <table id="colorsTable">
-            </table>
+        <div id="col2">
+            Color:
+            <table id="colorsTable"></table>
             笔的粗细:
             <select onchange="cc.lineWidth = this.value;ws.send('P4'+this.value);">
                 <option value="1">1</option>
@@ -218,12 +241,14 @@
                 <option value="9">9</option>
             </select>
             <br/>
-            <button onclick='clearCanvas(true);'>清空画板</button>
-        </div>
-        <div style="float:left">
-            <div id="chatBox"></div>
-            <input id="chatInput" type="text"/> <button onclick='chat();'>发送</button>
+            <button onclick='clearCanvas(true);'>Clear</button>
         </div>
     </div>
+    <div class="pure-u-lg-2-5">
+        <div id="chatBox"></div>
+        <input class="nes-input" id="chatInput" type="text"/>
+        <button onclick='chat();'>Send</button>
+    </div>
+</div>
 </body>
 </html>

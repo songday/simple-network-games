@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Game lobby</title>
-    <style type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="assets/common.css" rel="stylesheet" />
+    <link href="assets/nes.min.css" rel="stylesheet" />
+    <style>
         #roomsBox .room {
             background-color:white;
             border-radius:5px;
@@ -32,7 +35,7 @@
             ws.onmessage = function (event) {
                 const m = event.data;
                 console.log(m);
-                if (m == null || m == null || m.length == 0)
+                if (m == null || m.length == 0)
                     return;
                 showRooms(JSON.parse(m));
             };
@@ -53,7 +56,7 @@
                 else if (rooms[i].roomType == 'DRAW')
                     page = 'draw.html';
                 div.onclick = function() {
-                    location.href = page + '?roomName=' + encodeURIComponent(rooms[i].roomName) + '&roomId=' + rooms[i].roomId;
+                    location.href = 'games/' + page + '?roomName=' + encodeURIComponent(rooms[i].roomName) + '&roomId=' + rooms[i].roomId;
                 };
                 t.appendChild(div);
             }
@@ -65,16 +68,16 @@
         function createRoom() {
             const roomName = document.getElementById('roomName').value;
             const roomType = document.getElementById('roomType').value;
-            location.href = roomType + '?roomName=' + encodeURIComponent(roomName);
+            location.href = 'games/' + roomType + '?roomName=' + encodeURIComponent(roomName);
         }
     </script>
 </head>
 <body onload="loadRooms();">
     <div>
-        <button type="button" onclick="showNewRoomOptions();">Create a new room</button>
+        <button type="button" onclick="showNewRoomOptions();" class="nes-btn is-warning">Create a new room</button>
     </div>
     <div id="newRoom">
-        <div>Name: <input type="text" id="roomName" /></div>
+        <div>Name: <input type="text" id="roomName" class="nes-input" /></div>
         <div>
             Type: 
             <select id="roomType">
@@ -82,7 +85,7 @@
                 <option value="snake.html">Snake</option>
             </select>
         </div>
-        <div><button type="button" onclick="createRoom();">Create</button></div>
+        <div><button type="button" onclick="createRoom();">Next Step</button></div>
     </div>
     <div id="roomsBox"></div>
 </body>

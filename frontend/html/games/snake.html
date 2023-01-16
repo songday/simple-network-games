@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <title>Snake</title>
-    <style type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="../assets/common.css" rel="stylesheet" />
+    <link href="../assets/nes.min.css" rel="stylesheet" />
+    <style>
         #canvasBox {
             background-color:white;
             border-radius:5px;
             border:1px solid #000;
         }
-        #snakeZoon, #waitingZoon {
+        #snakeArea, #waitingArea {
             display: none;
         }
     </style>
-    <script src="common.js"></script>
+    <script src="../assets/common.js"></script>
     <script type="application/javascript">
         let roomName = null;
         let roomId = null;
@@ -22,7 +25,7 @@
         let direction = null;
         const squareSize = 10;
         let snakeColor = 'black';
-        const snakePlace = new Array();
+        const snakePlace = [];
         let remoteSnakeColor = 'black';
         let remoteSnakePlace = [0, 0];
         const remoteSnakePlaceLastPos = [[0, 0]];
@@ -44,8 +47,8 @@
                 document.getElementById('roomName').innerHTML = roomName;
             }
             if (roomId) {
-                document.getElementById('settingsZoon').style.display = 'none';
-                document.getElementById('snakeZoon').style.display = 'block';
+                document.getElementById('settingsArea').style.display = 'none';
+                document.getElementById('snakeArea').style.display = 'block';
                 initGame();
             } else
                 roomOwner = true;
@@ -53,8 +56,8 @@
         function saveSettings() {
             intervalMillis = document.getElementById('difficulty').value;
             gameMode = document.getElementById('gameMode').value;
-            document.getElementById('settingsZoon').style.display = 'none';
-            document.getElementById('waitingZoon').style.display = 'block';
+            document.getElementById('settingsArea').style.display = 'none';
+            document.getElementById('waitingArea').style.display = 'block';
             initGame();
         }
         function gameover() {
@@ -82,7 +85,7 @@
             ws.onmessage = function (event) {
                 const m = event.data;
                 console.log(m);
-                if (m == null || m == null || m.length == 0)
+                if (m == null || m.length == 0)
                     return;
                 const cmd = m.charAt(0);
                 // N Inited room info
@@ -98,8 +101,8 @@
                 } else if (cmd == 'J') {
                     initComponents();
                     if (roomOwner) {
-                        document.getElementById('waitingZoon').style.display = 'none';
-                        document.getElementById('snakeZoon').style.display = 'block';
+                        document.getElementById('waitingArea').style.display = 'none';
+                        document.getElementById('snakeArea').style.display = 'block';
                         genFoodPlace();
                     } else {
                         const p = m.substring(1);
@@ -345,7 +348,7 @@
 <body onload="initRoom();">
     <div class="roomName" id="roomName"></div>
     <div>Your snake color is: <div></div></div>
-    <div id="settingsZoon">
+    <div id="settingsArea">
         <div>
             Difficulty:
             <select id="difficulty">
@@ -363,12 +366,12 @@
         </div>
         <div><button type="button" onclick="saveSettings();">Set</button></div>
     </div>
-    <div id="waitingZoon">
+    <div id="waitingArea">
         <div>
             Waiting a player...
         </div>
     </div>
-    <div id="snakeZoon">
+    <div id="snakeArea">
         <div>
             <canvas id="canvasBox" width="1200" height="550"></canvas>
         </div>
