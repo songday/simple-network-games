@@ -18,7 +18,7 @@ public class DrawRoomHandler extends AbstractRoomHandler {
     }
 
     private Mono<Void> send(WebSocketSession session) {
-        Flux<String> sendMessages = Flux.interval(Duration.ofMillis(1500L)).flatMap(l -> Flux.fromIterable(getSelfMessages(session))).doOnComplete(() -> log.info("send complete"));
+        Flux<String> sendMessages = Flux.interval(Duration.ofMillis(1000L)).flatMap(l -> Flux.fromIterable(getSelfMessages(session))).doOnComplete(() -> log.info("send complete"));
         return session.send(sendMessages.map(session::textMessage));
     }
 
