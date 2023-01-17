@@ -5,3 +5,12 @@
 1. Open `frontend/html/lobby.html` in any browser (Supports `Firefox`, `Chrome`, `Microsoft Edge`) and create a game room by clicking `Create a new room` button
 1. Open `frontend/html/lobby.html` in any other type of browser, not the same as above one or in `Private mode`
 1. Have fun
+
+### Games
+Currently working on:
+1. Draw and guess
+1. Snake
+
+Planing:
+1. Mine sweeper
+1. Tetris
