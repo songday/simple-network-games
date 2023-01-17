@@ -351,23 +351,26 @@
 <body onload="initRoom();">
     <div class="roomName" id="roomName"></div>
     <div>Your snake color is: <div></div></div>
-    <div id="settingsArea">
-        <div>
-            Difficulty:
-            <select id="difficulty">
-                <option value="1500">Easy</option>
-                <option value="800">Middle</option>
-                <option value="300">Hard</option>
-            </select>
-        </div>
-        <div>
-            Mode:
-            <select id="gameMode">
-                <option value="amount">Amount</option>
-                <option value="vs">Vs.</option>
-            </select>
-        </div>
-        <div><button type="button" onclick="saveSettings();">Set</button></div>
+    <div id="settingsArea" class="nes-container with-title is-centered">
+        <p class="title">Some options</p>
+        <p>
+            <div>
+                Difficulty:
+                <select id="difficulty">
+                    <option value="1500">Easy</option>
+                    <option value="800">Middle</option>
+                    <option value="300">Hard</option>
+                </select>
+            </div>
+            <div>
+                Mode:
+                <select id="gameMode">
+                    <option value="amount">Amount</option>
+                    <option value="vs">Vs.</option>
+                </select>
+            </div>
+            <div><button type="button" onclick="saveSettings();">Start</button></div>
+        </p>
     </div>
     <div id="waitingArea">
         <div>
