@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Draw and guess</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="../assets/base-min.css" rel="stylesheet"/>
+    <link href="../assets/grids-min.css" rel="stylesheet"/>
     <link href="../assets/grids-responsive-min.css" rel="stylesheet"/>
     <link href="../assets/common.css" rel="stylesheet"/>
     <link href="../assets/nes.min.css" rel="stylesheet"/>
@@ -11,7 +13,7 @@
         #canvasBox {
             background-color: white;
             border-radius: 5px;
-            border: 1px solid #000;
+            border: 2px solid #000;
         }
 
         #drawArea {
@@ -21,9 +23,9 @@
         #chatBox {
             background-color: white;
             border-radius: 5px;
-            border: 1px solid #000;
+            border: 2px solid #000;
             height: 450px;
-            width: 300px;
+            width: 400px;
             overflow: auto;
         }
     </style>
@@ -161,7 +163,6 @@
             };
 
             const colorBoxDefaultStyle = '1px solid grey';
-            // https://www.w3schools.com/colors/colors_names.asp
             const t = document.getElementById('colorsTable');
             let tr;
             for (let i = 0; i < COLORS.length; i++) {
@@ -205,8 +206,9 @@
         }
 
         function clearCanvas(sync) {
-            cc.fillStyle = 'white';
-            cc.fillRect(0, 0, 600, 500);
+            // cc.fillStyle = 'white';
+            // cc.fillRect(0, 0, 600, 500);
+            cc.clearRect(0, 0, 600, 500);
             if (sync)
                 ws.send('P5');
         }
@@ -225,14 +227,17 @@
     <button type="button" onclick="saveSettings();">Start</button>
 </div>
 <div id="drawArea" class="pure-g">
-    <div class="pure-u-lg-3-5">
+    <div class="pure-u-2-24">
+        <button onclick='location.href="../lobby.html";'>Lobby</button>
+    </div>
+    <div class="pure-u-12-24 pure-u-lg-12-24">
         <div>
             <canvas id="canvasBox" width='600' height='500'></canvas>
         </div>
         <div id="col2">
             Color:
             <table id="colorsTable"></table>
-            笔的粗细:
+            Line width:
             <select onchange="cc.lineWidth = this.value;ws.send('P4'+this.value);">
                 <option value="1">1</option>
                 <option value="3">3</option>
@@ -244,10 +249,12 @@
             <button onclick='clearCanvas(true);'>Clear</button>
         </div>
     </div>
-    <div class="pure-u-lg-2-5">
+<!--    <div class="pure-u-1-24"></div>-->
+    <div class="pure-u-7-24 pure-u-lg-7-24">
         <div id="chatBox"></div>
-        <input class="nes-input" id="chatInput" type="text"/>
-        <button onclick='chat();'>Send</button>
+        <br/>
+        <input class="nes-input" id="chatInput" width="20" type="text"/>
+        <button onclick='chat();'>Send message</button>
     </div>
 </div>
 </body>

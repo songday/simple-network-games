@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <title>Snake</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="../assets/common.css" rel="stylesheet" />
-    <link href="../assets/nes.min.css" rel="stylesheet" />
+    <link href="../assets/base-min.css" rel="stylesheet"/>
+    <link href="../assets/grids-min.css" rel="stylesheet"/>
+    <link href="../assets/grids-responsive-min.css" rel="stylesheet"/>
+    <link href="../assets/common.css" rel="stylesheet"/>
+    <link href="../assets/nes.min.css" rel="stylesheet"/>
     <style>
         #canvasBox {
             background-color:white;
@@ -294,7 +297,7 @@
             ctx.beginPath();
             for (let i = 0;i < remoteSnakePlace.length;) {
                 ctx.rect(remoteSnakePlace[i++], remoteSnakePlace[i++], squareSize, squareSize);
-            };
+            }
             ctx.fillStyle = remoteSnakeColor;
             ctx.fill();
             ctx.beginPath();
@@ -312,7 +315,7 @@
                 // console.log('snakeColor='+snakeColor);
                 item = remoteSnakePlaceLastPos.pop();
                 ctx.rect(item[0], item[1], squareSize, squareSize);
-            };
+            }
             ctx.fillStyle = 'white';
             ctx.fill();
             ctx.beginPath();

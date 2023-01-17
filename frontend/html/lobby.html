@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <title>Game lobby</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="assets/common.css" rel="stylesheet" />
-    <link href="assets/nes.min.css" rel="stylesheet" />
+    <link href="assets/base-min.css" rel="stylesheet"/>
+    <link href="assets/grids-min.css" rel="stylesheet"/>
+    <link href="assets/grids-responsive-min.css" rel="stylesheet"/>
+    <link href="assets/common.css" rel="stylesheet"/>
+    <link href="assets/nes.min.css" rel="stylesheet"/>
     <style>
         #roomsBox .room {
             background-color:white;
@@ -78,7 +81,7 @@
     </div>
     <div id="newRoom">
         <div>Name: <input type="text" id="roomName" class="nes-input" /></div>
-        <div>
+        <div class="nes-select is-success">
             Type: 
             <select id="roomType">
                 <option value="draw.html">Draw and guess</option>
