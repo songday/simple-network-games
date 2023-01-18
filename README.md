@@ -14,3 +14,4 @@ Currently working on:
 Planing:
 1. Mine sweeper
 1. Tetris
+2. Rock Paper Scissors (Sometimes this solves arguments)
