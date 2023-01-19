@@ -1,27 +1,62 @@
 use std::sync::Arc;
 use std::vec::Vec;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
+use tokio::sync::Mutex;
 
+#[derive(Clone, Deserialize, Serialize)]
 pub(crate) enum RoomType {
     DRAW,
     SNAKE,
+    UNKNOWN,
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct RoomParams {
+    #[serde(alias = "ri")]
     pub(crate) room_id: String,
+    #[serde(alias = "rn")]
     pub(crate) room_name: String,
     pub(crate) player: String,
+    #[serde(alias = "rcap")]
+    pub(crate) capacity: u8,
+    #[serde(alias = "rty")]
+    pub(crate) room_type: RoomType,
+    #[serde(alias = "red")]
+    pub(crate) extra_data: String,
 }
 
+impl std::convert::From<&RoomParams> for RoomData {
+    fn from(r: &RoomParams) -> Self {
+        let capacity = match r.room_type {
+            RoomType::DRAW => 2u8,
+            RoomType::SNAKE => 2u8,
+            RoomType::UNKNOWN => r.capacity,
+        };
+        Self {
+            room_id: scru128::new_string(),
+            room_name: r.room_name.clone(),
+            room_type: r.room_type.clone(),
+            players: Vec::with_capacity(capacity as usize),
+            capacity,
+            extra_data: String::with_capacity(128),
+            // Create a new channel for every room
+            // tx: broadcast::channel(20).0,
+        }
+    }
+}
+
+#[derive(Serialize)]
 pub(crate) struct RoomData {
     /// Previously stored in AppRoom
     pub(crate) room_id: String,
     pub(crate) room_name: String,
     pub(crate) room_type: RoomType,
-    players: Vec<(String, Arc<mpsc::Sender<String>>)>,
+    // players: Vec<(String, mpsc::Sender<String>)>,
+    #[serde(skip_serializing)]
+    players: Vec<(String, mpsc::Sender<String>)>,
     pub(crate) capacity: u8,
     pub(crate) extra_data: String,
     // tx: broadcast::Sender<String>,
@@ -29,33 +64,17 @@ pub(crate) struct RoomData {
 
 impl RoomData {
     pub(crate) async fn new(
-        room_name: String,
-        room_type: RoomType,
-        player: String,
-        channel_sender: Arc<mpsc::Sender<String>>,
+        room_params: &RoomParams,
+        channel_sender: mpsc::Sender<String>,
     ) -> Self {
-        let capacity = match room_type {
-            RoomType::DRAW => 2u8,
-            RoomType::SNAKE => 2u8,
-        };
-        let mut room = Self {
-            room_id: scru128::new_string(),
-            room_name,
-            room_type,
-            players: Vec::with_capacity(2),
-            capacity,
-            extra_data: String::with_capacity(128),
-            // Create a new channel for every room
-            // tx: broadcast::channel(20).0,
-        };
-        let send_to = player.clone();
-        room.add_player(player, channel_sender);
-        room.send_self_message(&send_to, String::from(&room.room_id))
+        let mut room: RoomData = room_params.into();
+        room.add_player(room_params.player.clone(), channel_sender);
+        room.send_self_message(&room_params.player, String::from(&room.room_id))
             .await;
         room
     }
 
-    pub(crate) fn add_player(&mut self, player: String, channel_sender: Arc<mpsc::Sender<String>>) {
+    pub(crate) fn add_player(&mut self, player: String, channel_sender: mpsc::Sender<String>) {
         self.players.push((player, channel_sender));
     }
 

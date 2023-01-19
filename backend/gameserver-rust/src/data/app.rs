@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::vec::Vec;
 
@@ -5,24 +6,25 @@ use std::future::Future;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 
-use super::room::{RoomData, RoomType};
+use super::room::{RoomData, RoomParams};
 
 pub(crate) struct AppData {
-    /// Keys are the name of the channel
     pub(crate) rooms: Mutex<Vec<RoomData>>,
+    // Keys are the name of the channel
+    // pub(crate) send_channels: Mutex<HashMap<String, Vec<(String, mpsc::Sender<String>)>>>,
 }
 
 impl AppData {
     pub(crate) async fn new_room(
         &self,
-        room_name: String,
-        room_type: RoomType,
-        player: String,
-        channel_sender: Arc<mpsc::Sender<String>>,
-    ) {
+        room_params: &mut RoomParams,
+        channel_sender: mpsc::Sender<String>,
+    ) -> usize {
         let mut rooms = self.rooms.lock().await;
-        let room = RoomData::new(room_name, room_type, player, channel_sender).await;
+        let room = RoomData::new(room_params, channel_sender).await;
+        room_params.room_id = room.room_id.clone();
         rooms.push(room);
+        rooms.len() - 1
     }
 
     async fn get_room_and_do<F, T>(&self, room_id: &String, callback: F) -> Option<T>
@@ -56,7 +58,7 @@ impl AppData {
         &self,
         player: String,
         room_id: String,
-        channel_sender: Arc<mpsc::Sender<String>>,
+        channel_sender: mpsc::Sender<String>,
     ) -> bool {
         let f = |r: &mut RoomData| {
             r.add_player(player, channel_sender);
@@ -75,8 +77,8 @@ impl AppData {
         //         break;
         //     }
         // }
-        let f = |r: &mut RoomData| r.broadcast_message(message);
-        self.get_room_and_do_async(&room_id, f).await;
+        // let f = |r: &mut RoomData| r.broadcast_message(message);
+        // self.get_room_and_do_async(&room_id, f).await;
         false
     }
 }
