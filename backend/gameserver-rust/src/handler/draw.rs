@@ -35,8 +35,9 @@ async fn handle_websocket(
         room_idx = Some(idx);
     } else {
         let mut idx_counter = 0usize;
-        for r in app_data.rooms.lock().await.iter() {
+        for r in app_data.rooms.lock().await.iter_mut() {
             if r.room_id.eq(&room_params.room_id) {
+                r.add_player(room_params.player.clone(), tx);
                 room_idx = Some(idx_counter);
                 break;
             }
@@ -48,7 +49,7 @@ async fn handle_websocket(
         tokio::spawn(read(room_params, app_data, room_idx.unwrap(), receiver));
         tokio::spawn(write(sender, rx));
     } else {
-        if let Err(e) = websocket.send(Message::Text(String::from(""))).await {
+        if let Err(e) = websocket.send(Message::Text(String::from("Cannot find the room"))).await {
             eprintln!("{:?}", e);
         }
         if let Err(e) = websocket.close().await {

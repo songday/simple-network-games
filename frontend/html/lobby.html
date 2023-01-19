@@ -19,12 +19,20 @@
             overflow: auto;
             cursor: pointer;
         }
-        #newRoom {
+        #newRoom, #newRoomOptions {
             display: none;
         }
     </style>
+    <script src="assets/common.js"></script>
     <script type="application/javascript">
         function loadRooms() {
+            const playerName = getCookie(COOKIE_NAME_PLAYER_NAME);
+            console.log('playerName='+playerName);
+            if (playerName) {
+                document.getElementById('newRoom').style.display = 'block';
+                document.getElementById('setPlayerName').style.display = 'none';
+            }
+
             const ws = new WebSocket('ws://localhost:3000/lobby');
 
             ws.onopen = function () {
@@ -64,9 +72,16 @@
                 t.appendChild(div);
             }
         }
+        function savePlayName() {
+            const name = document.getElementById('nickname').value;
+            console.log('name='+name);
+            setCookie(COOKIE_NAME_PLAYER_NAME, name,100);
+            document.getElementById('setPlayerName').style.display = 'none';
+            document.getElementById('newRoom').style.display = 'block';
+        }
         function showNewRoomOptions() {
             // showWelcome();
-            document.getElementById('newRoom').style.display = 'block';
+            document.getElementById('newRoomOptions').style.display = 'block';
         }
         function createRoom() {
             const roomName = document.getElementById('roomName').value;
@@ -76,10 +91,17 @@
     </script>
 </head>
 <body onload="loadRooms();">
-    <div>
-        <button type="button" onclick="showNewRoomOptions();" class="nes-btn is-warning">Create a new room</button>
+    <div id="setPlayerName" class="nes-container with-title is-centered">
+        <p class="title">Set your nickname please</p>
+        <p>
+            <input class="nes-input" id="nickname" type="text" />
+            <button type="button" onclick="savePlayName();">Set and continue</button>
+        </p>
     </div>
     <div id="newRoom">
+        <button type="button" onclick="showNewRoomOptions();" class="nes-btn is-warning">Create a new room</button>
+    </div>
+    <div id="newRoomOptions">
         <div>Name: <input type="text" id="roomName" class="nes-input" /></div>
         <div class="nes-select is-success">
             Type: 

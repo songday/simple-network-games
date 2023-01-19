@@ -74,7 +74,9 @@
         }
 
         function initGame() {
-            ws = new WebSocket('ws://localhost:3000/room/draw?roomName=' + encodeURIComponent(roomName) + '&roomId=' + roomId);
+            console.log('playerName='+getCookie(COOKIE_NAME_PLAYER_NAME));
+            const u = 'ws://localhost:3000/room/draw?rn='+encodeURIComponent(roomName)+'&ri='+roomId+'&player='+getCookie(COOKIE_NAME_PLAYER_NAME)+'&rcap=2&rty=DRAW&red=1';
+            ws = new WebSocket(u);
 
             ws.onopen = function () {
                 console.log(`[CLIENT] open()`);

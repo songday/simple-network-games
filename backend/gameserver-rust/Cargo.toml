@@ -7,7 +7,8 @@ edition = "2021"
 
 [dependencies]
 axum = {version ="0.6", features = ["headers", "ws"]}
-serde = {version = "1", features=["derive"]}
-tokio = {version = "1.24", features = ["fs", "io-util", "macros", "rt", "rt-multi-thread", "signal", "sync", "time"]}
 futures = {version = "0.3"}
 scru128 = "2.4.0"
+serde = {version = "1", features=["derive"]}
+serde_json = "1.0"
+tokio = {version = "1.24", features = ["fs", "io-util", "macros", "rt", "rt-multi-thread", "signal", "sync", "time"]}

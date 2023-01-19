@@ -15,16 +15,16 @@ pub(crate) enum RoomType {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct RoomParams {
-    #[serde(alias = "ri")]
+    #[serde(alias = "ri", alias = "roomId")]
     pub(crate) room_id: String,
-    #[serde(alias = "rn")]
+    #[serde(alias = "rn", alias = "roomName")]
     pub(crate) room_name: String,
     pub(crate) player: String,
-    #[serde(alias = "rcap")]
+    #[serde(alias = "rcap", alias = "capacity")]
     pub(crate) capacity: u8,
-    #[serde(alias = "rty")]
+    #[serde(alias = "rty", alias = "roomType")]
     pub(crate) room_type: RoomType,
-    #[serde(alias = "red")]
+    #[serde(alias = "red", alias = "extraData")]
     pub(crate) extra_data: String,
 }
 
@@ -41,7 +41,7 @@ impl std::convert::From<&RoomParams> for RoomData {
             room_type: r.room_type.clone(),
             players: Vec::with_capacity(capacity as usize),
             capacity,
-            extra_data: String::with_capacity(128),
+            extra_data: r.extra_data.clone(),
             // Create a new channel for every room
             // tx: broadcast::channel(20).0,
         }
@@ -49,6 +49,7 @@ impl std::convert::From<&RoomParams> for RoomData {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct RoomData {
     /// Previously stored in AppRoom
     pub(crate) room_id: String,

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::extract::State;
 use axum::response::IntoResponse;
-use futures::{sink::SinkExt, stream::StreamExt};
+use tokio::time::{sleep, Duration};
 
 use crate::data::app::AppData;
 
@@ -14,6 +14,14 @@ pub(crate) async fn websocket_handler(
     ws.on_upgrade(|socket| handle_websocket(socket, app_data))
 }
 
-async fn handle_websocket(websocket: WebSocket, app_data: Arc<AppData>) {
-    let (mut sender, mut receiver) = websocket.split();
+async fn handle_websocket(mut websocket: WebSocket, app_data: Arc<AppData>) {
+    loop {
+        let rooms = app_data.rooms.lock().await;
+        let json = serde_json::to_string(&(*rooms)).unwrap();
+        if let Err(e) = websocket.send(Message::Text(json)).await {
+            eprintln!("{:?}", e);
+            break;
+        }
+        sleep(Duration::from_millis(2000)).await;
+    }
 }
