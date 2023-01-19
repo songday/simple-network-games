@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::vec::Vec;
 
 use axum::{
-    response::{Html, IntoResponse},
+    response::Html,
     routing::get,
     Router,
 };

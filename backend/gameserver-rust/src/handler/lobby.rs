@@ -19,7 +19,7 @@ async fn handle_websocket(mut websocket: WebSocket, app_data: Arc<AppData>) {
         let rooms = app_data.rooms.lock().await;
         let json = serde_json::to_string(&(*rooms)).unwrap();
         if let Err(e) = websocket.send(Message::Text(json)).await {
-            eprintln!("{:?}", e);
+            eprintln!("lobby send err={:?}", e);
             break;
         }
         sleep(Duration::from_millis(2000)).await;

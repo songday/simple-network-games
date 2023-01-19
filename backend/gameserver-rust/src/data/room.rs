@@ -112,4 +112,8 @@ impl RoomData {
         }
         return false;
     }
+
+    pub(crate) fn clear_players(&mut self) {
+        self.players.clear();
+    }
 }
