@@ -74,8 +74,10 @@
         }
 
         function initGame() {
-            console.log('playerName='+getCookie(COOKIE_NAME_PLAYER_NAME));
-            const u = 'ws://localhost:3000/room/draw?rn='+encodeURIComponent(roomName)+'&ri='+roomId+'&player='+getCookie(COOKIE_NAME_PLAYER_NAME)+'&rcap=2&rty=DRAW&red=1';
+            playerName = getCookie(COOKIE_NAME_PLAYER_NAME);
+            console.log('playerName='+playerName);
+            const u = 'ws://localhost:3000/room/draw?roomName='+encodeURIComponent(roomName)
+                        +'&roomId='+roomId+'&player='+playerName+'&capacity=2&roomType=DRAW&extraData=';
             ws = new WebSocket(u);
 
             ws.onopen = function () {
@@ -119,11 +121,11 @@
                 } else if (cmd == '5') {
                     clearCanvas(false);
                 } else if (cmd == '6') {
-                    const s = m.substring(1);
+                    const s = JSON.parse(m.substring(1));
                     const p = document.createElement('p');
-                    p.innerHTML = s;
+                    p.textContent = s.playerName + ':' + s.chat;
                     chatBox.appendChild(p);
-                    if (correctAnswer && s == correctAnswer) {
+                    if (correctAnswer && s.chat == correctAnswer && playerName != s.playerName) {
                         ws.send('P7');
                         gameover();
                     }
@@ -219,7 +221,8 @@
         }
 
         function sendChat() {
-            ws.send('B6' + chatInput.value);
+            const json = {"playerName":playerName,"chat":chatInput.value};
+            ws.send('B6' + JSON.stringify(json));
             chatInput.value = '';
         }
     </script>

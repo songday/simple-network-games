@@ -1,9 +1,7 @@
-use std::sync::Arc;
 use std::vec::Vec;
 
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
-use tokio::sync::Mutex;
 
 #[derive(Clone, Deserialize, Serialize)]
 pub(crate) enum RoomType {
@@ -20,7 +18,7 @@ pub(crate) struct RoomParams {
     #[serde(alias = "rn", alias = "roomName")]
     pub(crate) room_name: String,
     pub(crate) player: String,
-    #[serde(alias = "rcap", alias = "capacity")]
+    #[serde(alias = "cap", alias = "capacity")]
     pub(crate) capacity: u8,
     #[serde(alias = "rty", alias = "roomType")]
     pub(crate) room_type: RoomType,

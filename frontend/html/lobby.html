@@ -25,14 +25,16 @@
     </style>
     <script src="assets/common.js"></script>
     <script type="application/javascript">
-        function loadRooms() {
+        function init() {
             const playerName = getCookie(COOKIE_NAME_PLAYER_NAME);
             console.log('playerName='+playerName);
             if (playerName) {
                 document.getElementById('newRoom').style.display = 'block';
                 document.getElementById('setPlayerName').style.display = 'none';
+                loadRooms();
             }
-
+        }
+        function loadRooms() {
             const ws = new WebSocket('ws://localhost:3000/lobby');
 
             ws.onopen = function () {
@@ -90,7 +92,7 @@
         }
     </script>
 </head>
-<body onload="loadRooms();">
+<body onload="init();">
     <div id="setPlayerName" class="nes-container with-title is-centered">
         <p class="title">Set your nickname please</p>
         <p>
