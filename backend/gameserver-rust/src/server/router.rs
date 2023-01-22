@@ -1,15 +1,11 @@
 use std::sync::Arc;
 use std::vec::Vec;
 
-use axum::{
-    response::Html,
-    routing::get,
-    Router,
-};
+use axum::{response::Html, routing::get, Router};
 use tokio::sync::Mutex;
 
 use crate::data::app::AppData;
-use crate::handler::{draw, lobby, snake};
+use crate::handler::{assets, draw, lobby, snake};
 
 pub(crate) fn get_route() -> Router {
     let app_data = Arc::new(AppData {
@@ -21,6 +17,7 @@ pub(crate) fn get_route() -> Router {
         .route("/lobby", get(lobby::websocket_handler))
         .route("/room/draw", get(draw::websocket_handler))
         .route("/room/snake", get(snake::websocket_handler))
+        .fallback(assets::assets_handler)
         .with_state(app_data)
 }
 

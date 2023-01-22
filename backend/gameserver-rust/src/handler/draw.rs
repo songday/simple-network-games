@@ -58,7 +58,10 @@ async fn handle_websocket(
         //     }
         // }
     } else {
-        if let Err(e) = websocket.send(Message::Text(String::from("Cannot find the room"))).await {
+        if let Err(e) = websocket
+            .send(Message::Text(String::from("Cannot find the room")))
+            .await
+        {
             eprintln!("{:?}", e);
         }
         if let Err(e) = websocket.close().await {

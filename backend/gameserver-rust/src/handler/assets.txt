@@ -1,0 +1,13 @@
+[
+("/assets/base-min.css", include_bytes!(r#"../../..\..\frontend\html/assets\base-min.css.gz"#), "text/css"),
+("/assets/common.css", include_bytes!(r#"../../..\..\frontend\html/assets\common.css.gz"#), "text/css"),
+("/assets/common.js", include_bytes!(r#"../../..\..\frontend\html/assets\common.js.gz"#), "text/javascript"),
+("/assets/grids-min.css", include_bytes!(r#"../../..\..\frontend\html/assets\grids-min.css.gz"#), "text/css"),
+("/assets/grids-responsive-min.css", include_bytes!(r#"../../..\..\frontend\html/assets\grids-responsive-min.css.gz"#), "text/css"),
+("/assets/lobby_hero_bg.jpg", include_bytes!(r#"../../..\..\frontend\html/assets\lobby_hero_bg.jpg.gz"#), ""),
+("/assets/nes.min.css", include_bytes!(r#"../../..\..\frontend\html/assets\nes.min.css.gz"#), "text/css"),
+("/assets/PressStart2P-Regular.ttf", include_bytes!(r#"../../..\..\frontend\html/assets\PressStart2P-Regular.ttf.gz"#), "Application/font-sfnt"),
+("/games/draw.html", include_bytes!(r#"../../..\..\frontend\html/games\draw.html.gz"#), "text/html; charset=utf-8"),
+("/games/snake.html", include_bytes!(r#"../../..\..\frontend\html/games\snake.html.gz"#), "text/html; charset=utf-8"),
+("/lobby.html", include_bytes!(r#"../../..\..\frontend\html/lobby.html.gz"#), "text/html; charset=utf-8"),
+]

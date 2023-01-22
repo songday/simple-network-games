@@ -27,12 +27,11 @@ impl AppData {
         rooms.len() - 1
     }
 
-    pub(crate) async fn remove_room(
-        &self,
-        room_params: &RoomParams,
-    ) {
+    pub(crate) async fn remove_room(&self, room_params: &RoomParams) {
         let mut rooms = self.rooms.lock().await;
-        let index = rooms.iter().position(|r| r.room_id.eq(&room_params.room_id));
+        let index = rooms
+            .iter()
+            .position(|r| r.room_id.eq(&room_params.room_id));
         if index.is_some() {
             let mut r = rooms.remove(index.unwrap());
             r.clear_players();
