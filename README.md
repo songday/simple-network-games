@@ -5,7 +5,7 @@
 ### Rust Backend
 1. Download [Here](https://github.com/songday/simple-network-games/releases)
 1. Double click
-1. Open a browser and visit http://localhost:3000 [Shortcut](http://localhost:3000)
+1. Open a browser and visit http://localhost:3000 [Click Shortcut](http://localhost:3000)
 1. Have fun
 
 ### Java Backend
@@ -26,7 +26,7 @@ Planing:
 
 
 ## Just need a backend (without games frontend)? Sure!
-| Rust backend | Java Backend
+ | Rust backend | Java Backend
 -----|-----|-----
 Create a new room| 1. Connect to ws://localhost:3000/room/unknown?roomType=UNKONWN&roomName=<Name a room>&roomId=<Leave this empty>&player=&capacity=2&extraData= | 1. Connect to ws://localhost:3000
 1. After connected, send: {"":} | N/A         |N/A
