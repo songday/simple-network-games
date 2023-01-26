@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-use std::sync::Arc;
 use std::vec::Vec;
 
 use std::future::Future;
@@ -7,6 +5,7 @@ use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 
 use super::room::{RoomData, RoomParams};
+use crate::util::result::Result;
 
 pub(crate) struct AppData {
     pub(crate) rooms: Mutex<Vec<RoomData>>,
@@ -19,19 +18,21 @@ impl AppData {
         &self,
         room_params: &mut RoomParams,
         channel_sender: mpsc::Sender<String>,
-    ) -> usize {
+    ) -> Result<usize> {
         let mut rooms = self.rooms.lock().await;
-        let room = RoomData::new(room_params, channel_sender).await;
-        room_params.room_id = room.room_id.clone();
+        let room = RoomData::new(room_params, channel_sender).await?;
+        room_params.room_id = Some(room.room_id.clone());
         rooms.push(room);
-        rooms.len() - 1
+        Ok(rooms.len() - 1)
     }
 
     pub(crate) async fn remove_room(&self, room_params: &RoomParams) {
+        if room_params.room_id.is_none() {
+            return;
+        }
+        let room_id = room_params.room_id.as_ref().unwrap();
         let mut rooms = self.rooms.lock().await;
-        let index = rooms
-            .iter()
-            .position(|r| r.room_id.eq(&room_params.room_id));
+        let index = rooms.iter().position(|r| r.room_id.eq(room_id));
         if index.is_some() {
             let mut r = rooms.remove(index.unwrap());
             r.clear_players();

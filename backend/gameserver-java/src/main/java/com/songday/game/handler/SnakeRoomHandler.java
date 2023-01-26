@@ -64,8 +64,8 @@ public class SnakeRoomHandler extends AbstractRoomHandler {
                     addBroadcastMessages(session, "J" + roomData.getExtraData());
                 }
             }
-            // Pass through
-            else if (cmd == 'P') {
+            // Say/Speak/Send
+            else if (cmd == 'S') {
                 addCompetitorMessage(session, m.substring(1));
             }
             // Boardcast

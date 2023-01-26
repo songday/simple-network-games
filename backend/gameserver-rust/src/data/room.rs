@@ -3,6 +3,8 @@ use std::vec::Vec;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 
+use crate::util::result::{Error, Result};
+
 #[derive(Clone, Deserialize, Serialize)]
 pub(crate) enum RoomType {
     DRAW,
@@ -14,35 +16,55 @@ pub(crate) enum RoomType {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct RoomParams {
     #[serde(alias = "ri", alias = "roomId")]
-    pub(crate) room_id: String,
+    pub(crate) room_id: Option<String>,
     #[serde(alias = "rn", alias = "roomName")]
-    pub(crate) room_name: String,
+    pub(crate) room_name: Option<String>,
     pub(crate) player: String,
     #[serde(alias = "cap", alias = "capacity")]
-    pub(crate) capacity: u8,
+    pub(crate) capacity: Option<u8>,
     #[serde(alias = "rty", alias = "roomType")]
-    pub(crate) room_type: RoomType,
+    pub(crate) room_type: Option<RoomType>,
     #[serde(alias = "red", alias = "extraData")]
-    pub(crate) extra_data: String,
+    pub(crate) extra_data: Option<String>,
 }
 
-impl std::convert::From<&RoomParams> for RoomData {
-    fn from(r: &RoomParams) -> Self {
-        let capacity = match r.room_type {
+impl RoomParams {
+    pub(crate) fn as_room_data(&self) -> Result<RoomData> {
+        if self.room_type.is_none() {
+            return Err(Error::Message(String::from("Unknonw room type")));
+        }
+        if self.player.is_empty() {
+            return Err(Error::Message(String::from("Player name is empty")));
+        }
+        let room_name = match &self.room_name {
+            Some(n) => n,
+            None => "",
+        };
+        if room_name.is_empty() || room_name.len() > 30 {
+            return Err(Error::Message(String::from("Invalid room name")));
+        }
+        let room_type = self.room_type.as_ref().unwrap();
+        let capacity = match room_type {
             RoomType::DRAW => 2u8,
             RoomType::SNAKE => 2u8,
-            RoomType::UNKNOWN => r.capacity,
+            RoomType::UNKNOWN => match self.capacity {
+                Some(c) => c,
+                None => 0,
+            },
         };
-        Self {
+        Ok(RoomData {
             room_id: scru128::new_string(),
-            room_name: r.room_name.clone(),
-            room_type: r.room_type.clone(),
+            room_name: String::from(room_name),
+            room_type: room_type.clone(),
             players: Vec::with_capacity(capacity as usize),
             capacity,
-            extra_data: r.extra_data.clone(),
+            extra_data: match &self.extra_data {
+                Some(d) => String::from(d),
+                None => String::new(),
+            },
             // Create a new channel for every room
             // tx: broadcast::channel(20).0,
-        }
+        })
     }
 }
 
@@ -65,12 +87,12 @@ impl RoomData {
     pub(crate) async fn new(
         room_params: &RoomParams,
         channel_sender: mpsc::Sender<String>,
-    ) -> Self {
-        let mut room: RoomData = room_params.into();
+    ) -> Result<Self> {
+        let mut room: RoomData = room_params.as_room_data()?;
         room.add_player(room_params.player.clone(), channel_sender);
-        room.send_self_message(&room_params.player, String::from(&room.room_id))
+        room.send_self_message(&room_params.player, format!("N{}", &room.room_id))
             .await;
-        room
+        Ok(room)
     }
 
     pub(crate) fn add_player(&mut self, player: String, channel_sender: mpsc::Sender<String>) {

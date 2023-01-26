@@ -40,7 +40,7 @@
         let yLimit = 0;
         let previousTimeStamp = 0;
 
-        let roomOwner = false;
+        let roomCreator = false;
 
         function initRoom() {
             roomId = getParam("roomId");
@@ -54,7 +54,7 @@
                 document.getElementById('snakeArea').style.display = 'block';
                 initGame();
             } else
-                roomOwner = true;
+                roomCreator = true;
         }
         function saveSettings() {
             intervalMillis = document.getElementById('difficulty').value;
@@ -68,14 +68,21 @@
             ws.close();
         }
         function initGame() {
-            ws = new WebSocket('ws://localhost:3000/room/snake?roomName=' + encodeURIComponent(roomName) + '&roomId=' + roomId);
+            snakeColor = getRandomColor();
+            remoteSnakeColor = getRandomColor();
+            const playerName = getCookie(COOKIE_NAME_PLAYER_NAME);
+            const extraData = roomName + '|' + intervalMillis + '|' + gameMode + '|' + snakeColor + '|' + remoteSnakeColor;
+            let u = '';
+            if (roomCreator)
+                u = 'ws://localhost:3000/room/snake?roomName='+encodeURIComponent(roomName)+'&player='+playerName+'&capacity=2&roomType=SNAKE&extraData='+encodeURIComponent(extraData);
+            else
+                u = 'ws://localhost:3000/room/snake?roomId='+roomId+'&player='+playerName;
+            ws = new WebSocket(u);
 
             ws.onopen = function () {
                 console.log(`[CLIENT] open()`);
-                if (!roomId) {
-                    snakeColor = getRandomColor();
-                    remoteSnakeColor = getRandomColor();
-                    ws.send('N' + roomName + '|' + intervalMillis + '|' + gameMode + '|' + snakeColor + '|' + remoteSnakeColor);
+                if (roomCreator) {
+                    ws.send('N' + extraData);
                 } else {
                     ws.send('J' + roomId);
                 }
@@ -103,7 +110,7 @@
                     console.log('房间创建成功 id=' + roomId);
                 } else if (cmd == 'J') {
                     initComponents();
-                    if (roomOwner) {
+                    if (roomCreator) {
                         document.getElementById('waitingArea').style.display = 'none';
                         document.getElementById('snakeArea').style.display = 'block';
                         genFoodPlace();
@@ -140,7 +147,7 @@
                     p.innerHTML = s;
                     chatBox.appendChild(p);
                     if (correctAnswer && s == correctAnswer) {
-                        ws.send('P7');
+                        ws.send('S7');
                         gameover();
                     }
                 } else if (cmd == '7') {
@@ -322,7 +329,7 @@
             // ctx.clearRect(remoteSnakePlaceLastPos[0], remoteSnakePlaceLastPos[1], squareSize, squareSize);
 
             // console.log(sendData.join(','));
-            ws.send('PR' + sendData.join(','));
+            ws.send('SR' + sendData.join(','));
 
             // window.setTimeout(moveSnake, intervalMillis);
             // window.requestAnimationFrame(moveSnake);

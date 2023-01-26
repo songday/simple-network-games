@@ -1,5 +1,3 @@
-let playerName = '';
-
 // https://www.w3schools.com/colors/colors_names.asp
 const COLORS = [
   "AliceBlue","AntiqueWhite","Aqua","Aquamarine","Azure","Beige","Bisque","Black","BlanchedAlmond","Blue","BlueViolet","Brown",

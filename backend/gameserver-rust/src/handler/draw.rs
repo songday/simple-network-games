@@ -11,6 +11,7 @@ use tokio::sync::mpsc;
 
 use crate::data::app::AppData;
 use crate::data::room::RoomParams;
+use crate::util::result::Error;
 
 pub(crate) async fn websocket_handler(
     room_params: Query<RoomParams>,
@@ -22,20 +23,29 @@ pub(crate) async fn websocket_handler(
 
 async fn handle_websocket(
     mut room_params: RoomParams,
-    mut websocket: WebSocket,
+    websocket: WebSocket,
     app_data: Arc<AppData>,
 ) {
     let (tx, rx) = mpsc::channel::<String>(20);
     let mut room_idx = None;
-    if room_params.room_id.is_empty() {
+    if room_params.room_id.is_none() || room_params.room_id.as_ref().unwrap().is_empty() {
         // create a new room
         let idx = app_data.new_room(&mut room_params, tx).await;
-        room_idx = Some(idx);
+        match idx {
+            Ok(idx) => room_idx = Some(idx),
+            Err(e) => match e {
+                Error::Message(m) => {
+                    super::send_msg_and_close(websocket, &m).await;
+                    return;
+                }
+            },
+        }
     } else {
         // Join a room
+        let room_id = room_params.room_id.as_ref().unwrap();
         let mut idx_counter = 0usize;
         for r in app_data.rooms.lock().await.iter_mut() {
-            if r.room_id.eq(&room_params.room_id) {
+            if r.room_id.eq(room_id) {
                 r.add_player(room_params.player.clone(), tx);
                 room_idx = Some(idx_counter);
                 break;
@@ -58,15 +68,7 @@ async fn handle_websocket(
         //     }
         // }
     } else {
-        if let Err(e) = websocket
-            .send(Message::Text(String::from("Cannot find the room")))
-            .await
-        {
-            eprintln!("{:?}", e);
-        }
-        if let Err(e) = websocket.close().await {
-            eprintln!("{:?}", e);
-        }
+        super::send_msg_and_close(websocket, "Cannot find the room").await;
     }
 }
 
@@ -76,16 +78,17 @@ async fn read(
     room_idx: usize,
     mut ws_receiver: SplitStream<WebSocket>,
 ) {
+    let room_id = room_params.room_id.as_ref().unwrap();
     while let Some(Ok(message)) = ws_receiver.next().await {
         if let Message::Text(m) = message {
             println!("m={}", &m);
             let cmd = &m[..1];
-            if cmd.eq("P") {
+            if cmd.eq("S") {
                 let rooms = app_data.rooms.lock().await;
                 let room = rooms.get(room_idx);
                 if room.is_some() {
                     let room = room.unwrap();
-                    if room.room_id.eq(&room_params.room_id) {
+                    if room.room_id.eq(room_id) {
                         room.send_message_to_others(&room_params.player, String::from(&m[1..]))
                             .await;
                     }
@@ -95,7 +98,7 @@ async fn read(
                 let room = rooms.get(room_idx);
                 if room.is_some() {
                     let room = room.unwrap();
-                    if room.room_id.eq(&room_params.room_id) {
+                    if room.room_id.eq(room_id) {
                         room.broadcast_message(String::from(&m[1..])).await;
                     }
                 }

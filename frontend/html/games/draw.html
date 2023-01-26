@@ -32,7 +32,7 @@
         let roomName = null;
         let roomId = null;
         let correctAnswer = null;
-        let drawer = false;
+        let roomCreator = false;
         let ws = null;
         let chatBox = null;
         let chatInput = null;
@@ -59,7 +59,7 @@
                 showDrawArea();
                 initGame();
             } else
-                drawer = true;
+                roomCreator = true;
         }
 
         function saveSettings() {
@@ -76,13 +76,16 @@
         function initGame() {
             playerName = getCookie(COOKIE_NAME_PLAYER_NAME);
             console.log('playerName='+playerName);
-            const u = 'ws://localhost:3000/room/draw?roomName='+encodeURIComponent(roomName)
-                        +'&roomId='+roomId+'&player='+playerName+'&capacity=2&roomType=DRAW&extraData=';
+            let u = '';
+            if (roomCreator)
+                u = 'ws://localhost:3000/room/draw?roomName='+encodeURIComponent(roomName)+'&player='+playerName+'&capacity=2&roomType=DRAW&extraData=';
+            else
+                u = 'ws://localhost:3000/room/draw?roomId='+roomId+'&player='+playerName;
             ws = new WebSocket(u);
 
             ws.onopen = function () {
                 console.log(`[CLIENT] open()`);
-                if (drawer) {
+                if (roomCreator) {
                     ws.send('N' + roomName);
                 } else {
                     ws.send('J' + roomId);
@@ -126,7 +129,7 @@
                     p.textContent = s.playerName + ':' + s.chat;
                     chatBox.appendChild(p);
                     if (correctAnswer && s.chat == correctAnswer && playerName != s.playerName) {
-                        ws.send('P7');
+                        ws.send('S7');
                         gameover();
                     }
                 } else if (cmd == '7') {
@@ -146,7 +149,7 @@
             cc.lineCap = "butt";
             offsetLeft = c.offsetLeft;
             offsetTop = c.offsetTop;
-            if (!drawer) {
+            if (!roomCreator) {
                 document.getElementById('col2').style.visibility = 'hidden';
                 return;
             }
@@ -184,7 +187,7 @@
                     selectedTd = this;
                     cc.strokeStyle = this.style.backgroundColor;
                     this.style.border = '1px solid black';
-                    ws.send('P3' + this.style.backgroundColor);
+                    ws.send('S3' + this.style.backgroundColor);
                 };
                 tr.appendChild(td);
             }
@@ -203,7 +206,7 @@
         function draw(e) {
             if (drawing) {
                 drawPixel(e.pageX, e.pageY);
-                ws.send('P2' + e.pageX + ',' + e.pageY);
+                ws.send('S2' + e.pageX + ',' + e.pageY);
             }
         }
 
@@ -212,7 +215,7 @@
             // cc.fillRect(0, 0, 600, 500);
             cc.clearRect(0, 0, 600, 500);
             if (sync)
-                ws.send('P5');
+                ws.send('S5');
         }
 
         function checkType(event) {

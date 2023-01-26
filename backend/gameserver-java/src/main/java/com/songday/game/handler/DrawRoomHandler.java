@@ -59,8 +59,8 @@ public class DrawRoomHandler extends AbstractRoomHandler {
                         session.getAttributes().put(LobbyService.ATTR_ROOM_ID, roomData.getRoomId());
                     }
                 }
-                // Pass through
-                else if (cmd == 'P') {
+                // Say/Speak/Send
+                else if (cmd == 'S') {
                     addCompetitorMessage(session, m.substring(1));
                 }
                 // Boardcast
