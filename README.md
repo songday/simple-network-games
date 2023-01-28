@@ -5,7 +5,7 @@
 ### Rust Backend
 1. Download [Here](https://github.com/songday/simple-network-games/releases)
 1. Double click
-1. Open a browser and visit http://localhost:3000 [[Click Shortcut](http://localhost:3000)]
+1. Open a browser and visit [http://localhost:3000](http://localhost:3000)
 1. Have fun
 
 ### Java Backend
