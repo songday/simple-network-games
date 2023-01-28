@@ -28,5 +28,5 @@ Planing:
 ## Just need a backend (without games frontend)? Sure!
 Function | Rust backend | Java Backend
 -----|-----|-----
-Create a new room| 1. Connect to ws://localhost:3000/room/unknown?roomType=UNKONWN&roomName=<Name a room>&roomId=<Leave this empty>&player=&capacity=2&extraData= | 1. Connect to ws://localhost:3000 2. After connected, send: {"":} | N/A         |N/A
-Join a room| 1. Connect to ws://localhost:3000?roomType=UNKONWN&roomName=<Name a room>&roomId=<roomId>&player=&capacity=2&extraData= | 
+Create a new room| 1. Connect to ws://localhost:3000/room/unknown?roomType=UNKONWN&roomName=<Name a room>&player=<playerName>&capacity=<player amount, should greater than 1>&extraData= | 1. Connect to ws://localhost:3000 2. After connected, send: {"":} | N/A         |N/A
+Join a room| 1. Connect to ws://localhost:3000?roomId=<roomId>&player=<playerName> | 
