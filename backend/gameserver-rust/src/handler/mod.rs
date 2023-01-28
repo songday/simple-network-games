@@ -3,6 +3,7 @@ pub(crate) mod default;
 pub(crate) mod draw;
 pub(crate) mod lobby;
 pub(crate) mod snake;
+// pub(crate) mod unknown;
 
 use axum::extract::ws::{Message, WebSocket};
 

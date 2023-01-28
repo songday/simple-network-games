@@ -94,24 +94,13 @@ async fn read(
                     }
                 }
             } else if cmd.eq("S") {
-                let rooms = app_data.rooms.lock().await;
-                let room = rooms.get(room_idx);
-                if room.is_some() {
-                    let room = room.unwrap();
-                    if room.room_id.eq(room_id) {
-                        room.send_message_to_others(&room_params.player, String::from(&m[1..]))
-                            .await;
-                    }
-                }
+                app_data
+                    .send_message_to_others(room_idx, room_id, &room_params, String::from(&m[1..]))
+                    .await;
             } else if cmd.eq("B") {
-                let rooms = app_data.rooms.lock().await;
-                let room = rooms.get(room_idx);
-                if room.is_some() {
-                    let room = room.unwrap();
-                    if room.room_id.eq(room_id) {
-                        room.broadcast_message(String::from(&m[1..])).await;
-                    }
-                }
+                app_data
+                    .broadcast(room_idx, room_id, String::from(&m[1..]))
+                    .await;
             }
         }
     }
