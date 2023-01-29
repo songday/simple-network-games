@@ -36,23 +36,22 @@
             }
         }
         function loadRooms() {
-            const ws = new WebSocket('ws://localhost:3000/lobby');
-
-            ws.onopen = function () {
+            const openCallback = function () {
                 console.log(`[CLIENT] open()`);
+                hideModal();
             };
-
-            ws.onclose = function() {
+            const closeCallback = function(event) {
                 console.log('Connection was closed');
+                reconnect();
             };
-
-            ws.onmessage = function (event) {
-                const m = event.data;
-                console.log(m);
-                if (m == null || m.length == 0)
-                    return;
+            const messageCallback = function (m) {
                 showRooms(JSON.parse(m));
             };
+            const ws = connWebSocket('ws://localhost:3000/lobby', openCallback, closeCallback, messageCallback, null);
+        }
+        function reconnect() {
+            popupModal('Disconnected', 'The Connection was broken, reconnecting......', '', null);
+            loadRooms();
         }
         function showRooms(rooms) {
             const t = document.getElementById('roomsBox');
@@ -77,10 +76,8 @@
         }
         function savePlayName() {
             const name = document.getElementById('nickname').value;
-            console.log('name='+name);
             setCookie(COOKIE_NAME_PLAYER_NAME, name,100);
-            document.getElementById('setPlayerName').style.display = 'none';
-            document.getElementById('newRoom').style.display = 'block';
+            init();
         }
         function showNewRoomOptions() {
             // showWelcome();
