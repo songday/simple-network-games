@@ -23,6 +23,7 @@ Planing:
 1. Mine sweeper
 1. Tetris
 2. Rock Paper Scissors (Sometimes this solves arguments)
+1. P2P chat room
 
 
 ## Just need a backend (without games frontend)? Sure!
