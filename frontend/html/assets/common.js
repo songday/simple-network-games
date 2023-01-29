@@ -68,3 +68,66 @@ function getCookie(cname) {
 }
 const COOKIE_NAME_PLAYER_NAME = 'playerName';
 // End
+
+let popupModalEle = null;
+function getModal() {
+  const modalId = 'popupModal';
+  const modalHeaderId = modalId + 'Header';
+  const modalContentBodyId = modalId + 'Content';
+    if (popupModalEle == null)
+    popupModalEle = document.getElementById(modalId);
+  if (popupModalEle == null) {
+    const modalHeader = document.createElement('div');
+    modalHeader.className = 'modal-header';
+    modalHeader.innerHTML = '<span class="close">&times;</span><h2 id="' + modalHeaderId + '"></h2>';
+    const modalBody = document.createElement('div');
+    modalBody.className = 'modal-body';
+    modalBody.innerHTML = '<p id="' + modalContentBodyId + '"></p>';
+    const modalFooter = document.createElement('div');
+    modalFooter.className = 'modal-footer';
+    modalFooter.innerHTML = '<h3>&nbsp;</h3>';
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalBody);
+    modalContent.appendChild(modalFooter);
+    const modal = document.createElement('div');
+    modal.id = modalId;
+    modal.className = 'modal';
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    modal.setAttribute('headerId', modalHeaderId);
+    modal.setAttribute('contentId', modalContentBodyId);
+    popupModalEle = modal;
+  }
+  return popupModalEle;
+}
+function popupModal(title, content, bgColor, callback) {
+  const modal = getModal();
+  document.getElementById(modal.getAttribute('headerId')).textContent = title;
+  document.getElementById(modal.getAttribute('contentId')).textContent = content;
+  modal.style.display = 'block';
+}
+function hideModal() {
+  getModal().style.display = 'none';
+}
+// websocket
+function connWebSocket(u, openCallback, closeCallback, messageCallback, errorCallback) {
+  const ws = new WebSocket(u);
+  // console.log(ws.readyState);
+  if (errorCallback)
+    ws.onerror = errorCallback;
+  else
+    ws.onerror = function(event) {};
+  ws.onopen = openCallback;
+  ws.onclose = closeCallback;
+  ws.onmessage = function (event) {
+      const m = event.data;
+      if (typeof(m) === 'string') {
+        console.log(m);
+        if (m.length > 0)
+          messageCallback(m);
+      } else if (m instanceof ArrayBuffer) {}
+  };
+  return ws;
+}
