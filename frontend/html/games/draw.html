@@ -58,6 +58,7 @@
             if (roomId) {
                 showDrawArea();
                 initGame();
+                document.getElementById('answerTip').style.display = 'block';
             } else
                 roomCreator = true;
         }
@@ -81,9 +82,8 @@
                 u = 'ws://localhost:3000/room/draw?roomName='+encodeURIComponent(roomName)+'&player='+playerName+'&capacity=2&roomType=DRAW&extraData=';
             else
                 u = 'ws://localhost:3000/room/draw?roomId='+roomId+'&player='+playerName;
-            ws = new WebSocket(u);
 
-            ws.onopen = function () {
+            const openCallback = function () {
                 console.log(`[CLIENT] open()`);
                 if (roomCreator) {
                     ws.send('N' + roomName);
@@ -93,15 +93,11 @@
                 initComponents();
             };
 
-            ws.onclose = function () {
+            const closeCallback = function () {
                 console.log('Connection was closed');
             };
 
-            ws.onmessage = function (event) {
-                const m = event.data;
-                console.log(m);
-                if (m == null || m.length == 0)
-                    return;
+            const messageCallback = function (m) {
                 const cmd = m.charAt(0);
                 // N Inited room info
                 // 2 画布信息
@@ -136,6 +132,8 @@
                     gameover();
                 }
             };
+
+            ws = connWebSocket(u, openCallback, closeCallback, messageCallback, null);
         }
 
         function initComponents() {
@@ -273,6 +271,8 @@
         <div id="chatBox"></div>
         <br/>
         <input class="nes-input" id="chatInput" width="20" type="text" onkeyup="checkType(event);"/>
+        <br/>
+        <span id="answerTip" style="display:none;">You can type answer above.</span>
         <button onclick='sendChat();'>Send message</button>
     </div>
 </div>
