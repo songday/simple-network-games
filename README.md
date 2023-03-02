@@ -20,10 +20,12 @@ Currently working on:
 1. Snake
 
 Planing:
+1. Rock Paper Scissors (Sometimes this solves arguments)
+1. Chat room
+1. P2P Security chat (based on Signal protocol)
+1. Video conference room
 1. Mine sweeper
 1. Tetris
-2. Rock Paper Scissors (Sometimes this solves arguments)
-1. P2P chat room
 
 
 ## Just need a backend (without games frontend)? Sure!
