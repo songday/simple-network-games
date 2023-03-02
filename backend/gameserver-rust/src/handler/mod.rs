@@ -2,6 +2,7 @@ pub(crate) mod assets;
 pub(crate) mod default;
 pub(crate) mod draw;
 pub(crate) mod lobby;
+pub(crate) mod rps;
 pub(crate) mod snake;
 // pub(crate) mod unknown;
 
@@ -14,4 +15,11 @@ pub(crate) async fn send_msg_and_close(mut websocket: WebSocket, msg: &str) {
     if let Err(e) = websocket.close().await {
         eprintln!("{:?}", e);
     }
+}
+
+#[macro_export]
+macro_rules! find_room_then_do {
+    () => {
+        
+    };
 }
